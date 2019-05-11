@@ -16,26 +16,30 @@ import android.support.annotation.NonNull;
 public class HasForUser {
 
     @ColumnInfo(name = "group_id")
+    @NonNull
     private Long groupId;
 
     @ColumnInfo(name = "user_id")
+    @NonNull
     private Long userId;
 
     private boolean status;
 
-    public HasForUser(Long groupId, Long userId, boolean status) {
+    public HasForUser(@NonNull Long groupId, @NonNull Long userId, boolean status) {
         this.groupId = groupId;
         this.userId = userId;
         this.status = status;
     }
 
+    @NonNull
     public Long getGroupId() { return groupId; }
 
-    public void setGroupId(Long groupId) { this.groupId = groupId; }
+    public void setGroupId(@NonNull Long groupId) { this.groupId = groupId; }
 
+    @NonNull
     public Long getUserId() { return userId; }
 
-    public void setUserId(Long userId) { this.userId = userId; }
+    public void setUserId(@NonNull Long userId) { this.userId = userId; }
 
     public boolean isStatus() { return status; }
 
