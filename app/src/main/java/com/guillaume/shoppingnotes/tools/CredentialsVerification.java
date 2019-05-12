@@ -25,13 +25,15 @@ public class CredentialsVerification {
         String txtPassword = inputPassword.getEditText().getText().toString().trim();
         String txtPasswordRepeat = inputPasswordRepeat.getEditText().getText().toString().trim();
 
-        if (!txtLastname.isEmpty() && !txtFirstname.isEmpty() && !txtEmail.isEmpty() && !txtPassword.isEmpty() && txtPassword.equals(txtPasswordRepeat)) {
+        if (!txtLastname.isEmpty() && !txtFirstname.isEmpty() && !txtEmail.isEmpty() && !txtPassword.isEmpty() && txtPassword.equals(txtPasswordRepeat) && txtPassword.length() > 5) {
             if (checkEmail(txtEmail))
                 return true;
             showError(inputEmail, "Incorrect email format");
             return false;
         }
-        if (!txtPassword.equals(txtPasswordRepeat))
+        if (txtPassword.length() < 6)
+            showError(inputPassword, "Your password must be longer than 5 characters");
+        else if (!txtPassword.equals(txtPasswordRepeat))
             showError(inputPasswordRepeat, "Your password must be identical");
         for (TextInputLayout field : new TextInputLayout[]{inputPasswordRepeat, inputPassword, inputEmail, inputFirstname, inputLastname})
             if (emptyTextView(field))
@@ -41,7 +43,7 @@ public class CredentialsVerification {
 
     public static void registerFailed(TextInputLayout inputEmail) {
         if (!emptyTextView(inputEmail) && checkEmail(inputEmail.getEditText().getText().toString().trim()))
-            showError(inputEmail, "This email already exist.");
+            showError(inputEmail, "This email already exist");
     }
 
     public static boolean loginVerification(TextInputLayout inputEmail, TextInputLayout inputPassword) {
