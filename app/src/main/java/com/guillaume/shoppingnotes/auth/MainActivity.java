@@ -1,6 +1,5 @@
 package com.guillaume.shoppingnotes.auth;
 
-import android.content.Intent;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -14,8 +13,6 @@ import com.guillaume.shoppingnotes.auth.async.interfaces.RegisterUserInterface;
 import com.guillaume.shoppingnotes.database.AppDatabase;
 import com.guillaume.shoppingnotes.model.User;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
-
-import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, RegisterUserInterface, LoginUserInterface {
 
@@ -40,31 +37,28 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         this.inputEmail = inputEmail;
         this.inputPassword = inputPassword;
 
-        LoginUser loginUser = new LoginUser(db);
+        LoginUser loginUser = new LoginUser(db, inputEmail.getEditText().getText().toString().trim());
         loginUser.execute(this);
     }
 
     @Override
-    public void userLogin(List<User> users) {
-        String txtEmail = inputEmail.getEditText().getText().toString().trim();
-        String txtPassword = inputPassword.getEditText().getText().toString().trim();
-
-        for (User user: users) {
-            if (user != null && user.getEmail().equals(txtEmail) && user.getPassword().equals(txtPassword)) {
-                /*Intent intent = new Intent(this, ShopActivity.class);
-                intent.putExtra("user", user);
-                startActivityForResult(intent, 1);*/
-                Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
-                return;
-            }
+    public void userLogin(User user) {
+        if (user != null && user.getPassword().equals(inputPassword.getEditText().getText().toString().trim())) {
+            /*Intent intent = new Intent(this, ShopActivity.class);
+            intent.putExtra("user", user);
+            startActivityForResult(intent, 1);*/
+            Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
+            return;
         }
         CredentialsVerification.loginFailed(inputEmail, inputPassword);
     }
 
     @Override
     public void registerFromRegisterFragment(User user, TextInputLayout inputEmail) {
-        RegisterUser registerUser = new RegisterUser(this, db, user);
-        registerUser.execute(inputEmail);
+        this.inputEmail = inputEmail;
+
+        RegisterUser registerUser = new RegisterUser(db, inputEmail.getEditText().getText().toString().trim(), user);
+        registerUser.execute(this);
     }
 
     @Override
@@ -74,5 +68,5 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     }
 
     @Override
-    public void userNonRegistered(TextInputLayout textInputLayout) { CredentialsVerification.registerFailed(textInputLayout); }
+    public void userNonRegistered() { CredentialsVerification.registerFailed(inputEmail); }
 }

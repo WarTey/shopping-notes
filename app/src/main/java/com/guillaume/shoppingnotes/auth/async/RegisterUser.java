@@ -1,37 +1,38 @@
 package com.guillaume.shoppingnotes.auth.async;
 
 import android.os.AsyncTask;
-import android.support.design.widget.TextInputLayout;
 
 import com.guillaume.shoppingnotes.auth.async.interfaces.RegisterUserInterface;
 import com.guillaume.shoppingnotes.database.AppDatabase;
 import com.guillaume.shoppingnotes.model.User;
 
-public class RegisterUser extends AsyncTask<TextInputLayout, Void, TextInputLayout> {
+public class RegisterUser extends AsyncTask<RegisterUserInterface, Void, Boolean> {
 
     private RegisterUserInterface mListener;
     private AppDatabase db;
+    private String email;
     private User user;
 
-    public RegisterUser(RegisterUserInterface registerUserInterfaces, AppDatabase db, User user) {
-        this.mListener = registerUserInterfaces;
+    public RegisterUser(AppDatabase db, String email, User user) {
         this.db = db;
+        this.email = email;
         this.user = user;
     }
 
     @Override
-    protected TextInputLayout doInBackground(TextInputLayout... textInputLayouts) {
-        if (db.userDao().getUserByEmail(textInputLayouts[0].getEditText().getText().toString().trim()) != null)
-            return textInputLayouts[0];
+    protected Boolean doInBackground(RegisterUserInterface... registerUserInterfaces) {
+        mListener = registerUserInterfaces[0];
+        if (db.userDao().getUserByEmail(email) != null)
+            return false;
         db.userDao().insertUser(user);
-        return null;
+        return true;
     }
 
     @Override
-    protected void onPostExecute(TextInputLayout textInputLayout) {
-        if (textInputLayout == null)
+    protected void onPostExecute(Boolean request) {
+        if (request)
             mListener.userRegistered();
         else
-            mListener.userNonRegistered(textInputLayout);
+            mListener.userNonRegistered();
     }
 }

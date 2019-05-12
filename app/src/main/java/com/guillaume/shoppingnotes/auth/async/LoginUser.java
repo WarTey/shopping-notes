@@ -6,23 +6,23 @@ import com.guillaume.shoppingnotes.auth.async.interfaces.LoginUserInterface;
 import com.guillaume.shoppingnotes.database.AppDatabase;
 import com.guillaume.shoppingnotes.model.User;
 
-import java.util.List;
-
-public class LoginUser extends AsyncTask<LoginUserInterface, Void, List<User>> {
+public class LoginUser extends AsyncTask<LoginUserInterface, Void, User> {
 
     private LoginUserInterface mListener;
     private AppDatabase db;
+    private String email;
 
-    public LoginUser(AppDatabase db) { this.db = db; }
+    public LoginUser(AppDatabase db, String email) {
+        this.email = email;
+        this.db = db;
+    }
 
     @Override
-    protected List<User> doInBackground(LoginUserInterface... loginUserInterfaces) {
+    protected User doInBackground(LoginUserInterface... loginUserInterfaces) {
         mListener = loginUserInterfaces[0];
-        return db.userDao().getUsers();
+        return db.userDao().getUserByEmail(email);
     }
 
     @Override
-    protected void onPostExecute(List<User> users) {
-        mListener.userLogin(users);
-    }
+    protected void onPostExecute(User user) { mListener.userLogin(user); }
 }
