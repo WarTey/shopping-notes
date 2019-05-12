@@ -8,4 +8,9 @@
     <string name="password">Password</string>
     <string name="sign_in">Sign In</string>
     <string name="not_member">Not yet a member?</string>
+    <string name="register_to">Register to</string>
+    <string name="lastname">Lastname</string>
+    <string name="firstname">Firstname</string>
+    <string name="repeat_password">Repeat Password</string>
+    <string name="sign_up">Sign Up</string>
 </resources>
