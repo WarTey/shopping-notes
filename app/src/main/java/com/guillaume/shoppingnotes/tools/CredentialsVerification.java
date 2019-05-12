@@ -1,6 +1,7 @@
 package com.guillaume.shoppingnotes.tools;
 
 import android.support.design.widget.TextInputLayout;
+import android.util.Log;
 
 import java.util.regex.Pattern;
 
@@ -26,7 +27,7 @@ public class CredentialsVerification {
         String txtPasswordRepeat = inputPasswordRepeat.getEditText().getText().toString().trim();
 
         if (!txtLastname.isEmpty() && !txtFirstname.isEmpty() && !txtEmail.isEmpty() && !txtPassword.isEmpty() && txtPassword.equals(txtPasswordRepeat) && txtPassword.length() > 5) {
-            if (checkEmail(txtEmail))
+            if (checkEmail(txtEmail) && txtEmail.substring(txtEmail.lastIndexOf('.') + 1).length() > 1)
                 return true;
             showError(inputEmail, "Incorrect email format");
             return false;
