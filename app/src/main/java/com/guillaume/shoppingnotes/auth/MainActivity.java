@@ -5,23 +5,30 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
 import com.guillaume.shoppingnotes.R;
-import com.guillaume.shoppingnotes.auth.async.LoginUser;
-import com.guillaume.shoppingnotes.auth.async.RegisterUser;
-import com.guillaume.shoppingnotes.auth.async.interfaces.LoginUserInterface;
-import com.guillaume.shoppingnotes.auth.async.interfaces.RegisterUserInterface;
+import com.guillaume.shoppingnotes.database.async.LoginUser;
+import com.guillaume.shoppingnotes.database.async.RegisterUser;
+import com.guillaume.shoppingnotes.database.async.interfaces.LoginUserInterface;
+import com.guillaume.shoppingnotes.database.async.interfaces.RegisterUserInterface;
 import com.guillaume.shoppingnotes.database.AppDatabase;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegisterFailure;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegisterSuccess;
+import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseRegisterInterface;
 import com.guillaume.shoppingnotes.model.User;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
 
-public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, RegisterUserInterface, LoginUserInterface {
+public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, RegisterUserInterface, LoginUserInterface, FirebaseRegisterInterface {
 
-    TextInputLayout inputEmail, inputPassword;
+    private TextInputLayout inputEmail, inputPassword;
+    private FirebaseAuth auth;
     private AppDatabase db;
+    private User user;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        auth = FirebaseAuth.getInstance();
         db = AppDatabase.getInstance(this);
         setContentView(R.layout.activity_main);
         if (savedInstanceState == null)
@@ -56,17 +63,25 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     @Override
     public void registerFromRegisterFragment(User user, TextInputLayout inputEmail) {
         this.inputEmail = inputEmail;
+        this.user = user;
 
+        auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
+                .addOnSuccessListener(new FirebaseRegisterSuccess(this))
+                .addOnFailureListener(new FirebaseRegisterFailure(this));
+    }
+
+    @Override
+    public void firebaseRegistered() {
         RegisterUser registerUser = new RegisterUser(db, inputEmail.getEditText().getText().toString().trim(), user);
         registerUser.execute(this);
     }
+
+    @Override
+    public void firebaseNonRegistered() { CredentialsVerification.registerFailed(inputEmail); }
 
     @Override
     public void userRegistered() {
         getSupportFragmentManager().beginTransaction().replace(R.id.login, new LoginFragment()).addToBackStack(null).commit();
         Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
     }
-
-    @Override
-    public void userNonRegistered() { CredentialsVerification.registerFailed(inputEmail); }
 }

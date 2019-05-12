@@ -1,8 +1,8 @@
-package com.guillaume.shoppingnotes.auth.async;
+package com.guillaume.shoppingnotes.database.async;
 
 import android.os.AsyncTask;
 
-import com.guillaume.shoppingnotes.auth.async.interfaces.LoginUserInterface;
+import com.guillaume.shoppingnotes.database.async.interfaces.LoginUserInterface;
 import com.guillaume.shoppingnotes.database.AppDatabase;
 import com.guillaume.shoppingnotes.model.User;
 

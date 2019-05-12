@@ -1,8 +1,3 @@
-package com.guillaume.shoppingnotes.auth.async.interfaces;
+package com.guillaume.shoppingnotes.database.async.interfaces;
 
-public interface RegisterUserInterface {
-
-    void userRegistered();
-
-    void userNonRegistered();
-}
+public interface RegisterUserInterface { void userRegistered(); }
