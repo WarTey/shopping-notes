@@ -1,3 +1,11 @@
 <resources>
-    <string name="app_name">ShoppingNotes</string>
+    <string name="app_name">Shopping Notes</string>
+
+    <string name="welcome_to">Welcome to</string>
+    <string name="shopping_notes">Shopping Notes</string>
+    <string name="created_by">Created by Guillaume Blanc de Lanaute</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="sign_in">Sign In</string>
+    <string name="not_member">Not yet a member?</string>
 </resources>

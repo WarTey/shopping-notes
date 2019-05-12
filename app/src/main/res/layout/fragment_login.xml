@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context=".auth.LoginFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="35dp"
+        android:background="@color/colorPrimaryDark">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="40sp"
+            android:textColor="@android:color/white"
+            android:text="@string/welcome_to"
+            android:textAlignment="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="40sp"
+            android:textColor="@android:color/white"
+            android:text="@string/shopping_notes"
+            android:textAlignment="center" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="15sp"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="25dp"
+            android:text="@string/created_by"
+            android:textAlignment="center" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/inputEmail"
+            app:errorTextAppearance="@style/ErrorText"
+            app:hintEnabled="false"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/txtEmail"
+                android:layout_width="350dp"
+                android:layout_height="wrap_content"
+                android:drawableStart="@drawable/ic_mail_outline_grey_24dp"
+                android:drawableLeft="@drawable/ic_mail_outline_grey_24dp"
+                android:drawablePadding="10dp"
+                android:hint="@string/email"
+                android:theme="@style/EditText"
+                android:importantForAutofill="no"
+                android:inputType="textEmailAddress"
+                tools:ignore="UnusedAttribute" />
+        </android.support.design.widget.TextInputLayout>
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/inputPassword"
+            app:errorTextAppearance="@style/ErrorText"
+            app:hintEnabled="false"
+            app:passwordToggleEnabled="true"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content">
+
+            <EditText
+                android:id="@+id/txtPassword"
+                android:layout_width="350dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:drawableStart="@drawable/ic_lock_outline_grey_24dp"
+                android:drawableLeft="@drawable/ic_lock_outline_grey_24dp"
+                android:drawablePadding="10dp"
+                android:hint="@string/password"
+                android:theme="@style/EditText"
+                android:importantForAutofill="no"
+                android:inputType="textPassword"
+                tools:ignore="UnusedAttribute" />
+        </android.support.design.widget.TextInputLayout>
+
+        <Button
+            android:id="@+id/btnSignIn"
+            android:layout_width="125dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="40dp"
+            android:background="@drawable/button_pink"
+            android:drawableEnd="@drawable/ic_send_white_24dp"
+            android:drawableRight="@drawable/ic_send_white_24dp"
+            android:text="@string/sign_in"
+            android:textColor="@android:color/white" />
+
+        <Button
+            android:id="@+id/btnSignUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/button_transparent"
+            android:text="@string/not_member"
+            android:textColor="@color/nightAccent" />
+    </LinearLayout>
+
+</LinearLayout>
