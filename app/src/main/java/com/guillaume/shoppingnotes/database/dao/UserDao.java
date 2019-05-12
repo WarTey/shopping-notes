@@ -6,11 +6,16 @@ import android.arch.persistence.room.Query;
 
 import com.guillaume.shoppingnotes.model.User;
 
+import java.util.List;
+
 @Dao
 public interface UserDao {
 
     @Query("SELECT * FROM users WHERE email = :email")
     User getUserByEmail(String email);
+
+    @Query("SELECT * FROM users")
+    List<User> getUsers();
 
     @Insert
     void insertUser(User user);
