@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.guillaume.shoppingnotes.R;
+import com.guillaume.shoppingnotes.model.User;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
 
 public class LoginFragment extends Fragment {

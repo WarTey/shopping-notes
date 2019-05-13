@@ -8,12 +8,8 @@ public class FirebaseLoginSuccess implements OnSuccessListener<AuthResult> {
 
     private FirebaseLoginInterface mListener;
 
-    public FirebaseLoginSuccess(FirebaseLoginInterface firebaseLoginUserInterface) {
-        mListener = firebaseLoginUserInterface;
-    }
+    public FirebaseLoginSuccess(FirebaseLoginInterface firebaseLoginUserInterface) { mListener = firebaseLoginUserInterface; }
 
     @Override
-    public void onSuccess(AuthResult authResult) {
-
-    }
+    public void onSuccess(AuthResult authResult) { mListener.firebaseLogged(); }
 }

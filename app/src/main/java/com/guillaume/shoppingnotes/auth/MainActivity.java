@@ -12,13 +12,17 @@ import com.guillaume.shoppingnotes.database.async.RegisterUser;
 import com.guillaume.shoppingnotes.database.async.interfaces.LoginUserInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.RegisterUserInterface;
 import com.guillaume.shoppingnotes.database.AppDatabase;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseLoginFailure;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseLoginSuccess;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegisterFailure;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegisterSuccess;
+import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseLoginInterface;
 import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseRegisterInterface;
 import com.guillaume.shoppingnotes.model.User;
+import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
 
-public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, RegisterUserInterface, LoginUserInterface, FirebaseRegisterInterface {
+public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, RegisterUserInterface, LoginUserInterface, FirebaseRegisterInterface, FirebaseLoginInterface {
 
     private TextInputLayout inputEmail, inputPassword;
     private FirebaseAuth auth;
@@ -36,7 +40,12 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     }
 
     @Override
-    public void registerFromLoginFragment() { getSupportFragmentManager().beginTransaction().replace(R.id.login, new RegisterFragment()).addToBackStack(null).commit(); }
+    public void registerFromLoginFragment() {
+        if (ConnectivityHelper.isConnectedToNetwork(this))
+            getSupportFragmentManager().beginTransaction().replace(R.id.login, new RegisterFragment()).addToBackStack(null).commit();
+        else
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+    }
 
 
     @Override
@@ -44,9 +53,26 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         this.inputEmail = inputEmail;
         this.inputPassword = inputPassword;
 
-        LoginUser loginUser = new LoginUser(db, inputEmail.getEditText().getText().toString().trim());
-        loginUser.execute(this);
+        if (ConnectivityHelper.isConnectedToNetwork(this))
+            auth.signInWithEmailAndPassword(inputEmail.getEditText().getText().toString().trim(), inputPassword.getEditText().getText().toString().trim())
+                    .addOnSuccessListener(new FirebaseLoginSuccess(this))
+                    .addOnFailureListener(new FirebaseLoginFailure(this));
+        else {
+            LoginUser loginUser = new LoginUser(db, inputEmail.getEditText().getText().toString().trim());
+            loginUser.execute(this);
+        }
     }
+
+    @Override
+    public void firebaseLogged() {
+        /*Intent intent = new Intent(this, ShopActivity.class);
+        intent.putExtra("user", user);
+        startActivityForResult(intent, 1);*/
+        Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void firebaseNonLogged() { CredentialsVerification.loginFailed(inputEmail, inputPassword); }
 
     @Override
     public void userLogin(User user) {
@@ -65,14 +91,17 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         this.inputEmail = inputEmail;
         this.user = user;
 
-        auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
-                .addOnSuccessListener(new FirebaseRegisterSuccess(this))
-                .addOnFailureListener(new FirebaseRegisterFailure(this));
+        if (ConnectivityHelper.isConnectedToNetwork(this))
+            auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
+                    .addOnSuccessListener(new FirebaseRegisterSuccess(this))
+                    .addOnFailureListener(new FirebaseRegisterFailure(this));
+        else
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void firebaseRegistered() {
-        RegisterUser registerUser = new RegisterUser(db, inputEmail.getEditText().getText().toString().trim(), user);
+        RegisterUser registerUser = new RegisterUser(db, user);
         registerUser.execute(this);
     }
 
