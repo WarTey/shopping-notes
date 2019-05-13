@@ -92,7 +92,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
 
         if (ConnectivityHelper.isConnectedToNetwork(this))
             auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
-                    .addOnCompleteListener(new FirebaseRegister(this));
+                    .addOnCompleteListener(new FirebaseRegister(this, user));
         else
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
