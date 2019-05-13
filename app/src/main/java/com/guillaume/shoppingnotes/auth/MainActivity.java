@@ -1,5 +1,6 @@
 package com.guillaume.shoppingnotes.auth;
 
+import android.content.Intent;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -12,13 +13,12 @@ import com.guillaume.shoppingnotes.database.async.RegisterUser;
 import com.guillaume.shoppingnotes.database.async.interfaces.LoginUserInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.RegisterUserInterface;
 import com.guillaume.shoppingnotes.database.AppDatabase;
-import com.guillaume.shoppingnotes.firebase.auth.FirebaseLoginFailure;
-import com.guillaume.shoppingnotes.firebase.auth.FirebaseLoginSuccess;
-import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegisterFailure;
-import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegisterSuccess;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseLogin;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegister;
 import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseLoginInterface;
 import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseRegisterInterface;
 import com.guillaume.shoppingnotes.model.User;
+import com.guillaume.shoppingnotes.shop.ShopActivity;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
 
@@ -55,8 +55,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
 
         if (ConnectivityHelper.isConnectedToNetwork(this))
             auth.signInWithEmailAndPassword(inputEmail.getEditText().getText().toString().trim(), inputPassword.getEditText().getText().toString().trim())
-                    .addOnSuccessListener(new FirebaseLoginSuccess(this))
-                    .addOnFailureListener(new FirebaseLoginFailure(this));
+                    .addOnCompleteListener(new FirebaseLogin(this));
         else {
             LoginUser loginUser = new LoginUser(db, inputEmail.getEditText().getText().toString().trim());
             loginUser.execute(this);
@@ -65,9 +64,9 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
 
     @Override
     public void firebaseLogged() {
-        /*Intent intent = new Intent(this, ShopActivity.class);
+        Intent intent = new Intent(this, ShopActivity.class);
         intent.putExtra("user", user);
-        startActivityForResult(intent, 1);*/
+        startActivityForResult(intent, 1);
         Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
     }
 
@@ -77,9 +76,9 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     @Override
     public void userLogin(User user) {
         if (user != null && user.getPassword().equals(inputPassword.getEditText().getText().toString().trim())) {
-            /*Intent intent = new Intent(this, ShopActivity.class);
+            Intent intent = new Intent(this, ShopActivity.class);
             intent.putExtra("user", user);
-            startActivityForResult(intent, 1);*/
+            startActivityForResult(intent, 1);
             Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -93,8 +92,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
 
         if (ConnectivityHelper.isConnectedToNetwork(this))
             auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
-                    .addOnSuccessListener(new FirebaseRegisterSuccess(this))
-                    .addOnFailureListener(new FirebaseRegisterFailure(this));
+                    .addOnCompleteListener(new FirebaseRegister(this));
         else
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
