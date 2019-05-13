@@ -6,8 +6,6 @@ import android.arch.persistence.room.Query;
 
 import com.guillaume.shoppingnotes.model.User;
 
-import java.util.List;
-
 @Dao
 public interface UserDao {
 

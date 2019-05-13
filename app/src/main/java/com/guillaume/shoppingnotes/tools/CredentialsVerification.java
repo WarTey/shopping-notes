@@ -1,7 +1,6 @@
 package com.guillaume.shoppingnotes.tools;
 
 import android.support.design.widget.TextInputLayout;
-import android.util.Log;
 
 import java.util.regex.Pattern;
 
