@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_my_lists"
+            android:icon="@drawable/ic_playlist_add_check_grey_24dp"
+            android:title="@string/my_lists" />
+
+        <item
+            android:id="@+id/nav_my_history"
+            android:icon="@drawable/ic_playlist_play_grey_24dp"
+            android:title="@string/my_history" />
+
+        <item
+            android:id="@+id/nav_my_groups"
+            android:icon="@drawable/ic_group_grey_24dp"
+            android:title="@string/my_groups" />
+    </group>
+
+    <item android:title="@string/settings">
+        <menu>
+            <item
+                android:id="@+id/nav_my_account"
+                android:icon="@drawable/ic_account_circle_grey_24dp"
+                android:title="@string/my_account" />
+
+            <item
+                android:id="@+id/nav_sign_out"
+                android:icon="@drawable/ic_send_grey_24dp"
+                android:title="@string/sign_out" />
+        </menu>
+    </item>
+
+</menu>
