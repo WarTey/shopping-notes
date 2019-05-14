@@ -4,6 +4,8 @@ import android.content.Intent;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,6 +27,7 @@ import com.guillaume.shoppingnotes.tools.CredentialsVerification;
 public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, RegisterUserInterface, LoginUserInterface, FirebaseRegisterInterface, FirebaseLoginInterface {
 
     private TextInputLayout inputEmail, inputPassword;
+    private ProgressBar progressBar;
     private FirebaseAuth auth;
     private AppDatabase db;
     private User user;
@@ -53,6 +56,9 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         this.inputEmail = inputEmail;
         this.inputPassword = inputPassword;
 
+        progressBar = findViewById(R.id.progressBarLogin);
+        progressBar.setVisibility(View.VISIBLE);
+
         if (ConnectivityHelper.isConnectedToNetwork(this))
             auth.signInWithEmailAndPassword(inputEmail.getEditText().getText().toString().trim(), inputPassword.getEditText().getText().toString().trim())
                     .addOnCompleteListener(new FirebaseLogin(this));
@@ -64,6 +70,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
 
     @Override
     public void firebaseLogged() {
+        progressBar.setVisibility(View.GONE);
         Intent intent = new Intent(this, ShopActivity.class);
         intent.putExtra("user", user);
         startActivityForResult(intent, 1);
@@ -71,7 +78,10 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     }
 
     @Override
-    public void firebaseNonLogged() { CredentialsVerification.loginFailed(inputEmail, inputPassword); }
+    public void firebaseNonLogged() {
+        progressBar.setVisibility(View.GONE);
+        CredentialsVerification.loginFailed(inputEmail, inputPassword);
+    }
 
     @Override
     public void userLogin(User user) {
@@ -83,12 +93,16 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
             return;
         }
         CredentialsVerification.loginFailed(inputEmail, inputPassword);
+        progressBar.setVisibility(View.GONE);
     }
 
     @Override
     public void registerFromRegisterFragment(User user, TextInputLayout inputEmail) {
         this.inputEmail = inputEmail;
         this.user = user;
+
+        progressBar = findViewById(R.id.progressBarRegister);
+        progressBar.setVisibility(View.VISIBLE);
 
         if (ConnectivityHelper.isConnectedToNetwork(this))
             auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
@@ -104,10 +118,14 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     }
 
     @Override
-    public void firebaseNonRegistered() { CredentialsVerification.registerFailed(inputEmail); }
+    public void firebaseNonRegistered() {
+        progressBar.setVisibility(View.GONE);
+        CredentialsVerification.registerFailed(inputEmail);
+    }
 
     @Override
     public void userRegistered() {
+        progressBar.setVisibility(View.GONE);
         getSupportFragmentManager().beginTransaction().replace(R.id.login, new LoginFragment()).addToBackStack(null).commit();
         Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
     }
