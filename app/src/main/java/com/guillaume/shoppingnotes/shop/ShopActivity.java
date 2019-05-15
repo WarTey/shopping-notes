@@ -150,12 +150,14 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     public void firebaseListsResponse(java.util.List<List> lists) {
         this.lists = lists;
         initRecyclerViewLists();
+        progressBar.setVisibility(View.GONE);
     }
 
     @Override
     public void firebaseHasForItemsResponse(java.util.List<HasForItem> hasForItems) {
         this.hasForItems = hasForItems;
         initRecyclerViewLists();
+        progressBar.setVisibility(View.GONE);
     }
 
     public void initRecyclerViewLists() {
@@ -190,7 +192,9 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     }
 
     @Override
-    public void listFromMyListsFragment(View view) {
+    public void listFromMyListsFragment(View view, ProgressBar progressBar) {
+        this.progressBar = progressBar;
+        this.progressBar.setVisibility(View.VISIBLE);
         if (ConnectivityHelper.isConnectedToNetwork(this)) {
             new FirebaseListsHelper(this, firebaseDatabase).getLists();
             new FirebaseHasForItemsHelper(this, firebaseDatabase).getHasForItems();

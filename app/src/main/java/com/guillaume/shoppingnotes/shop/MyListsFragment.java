@@ -12,6 +12,7 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.guillaume.shoppingnotes.R;
@@ -26,7 +27,7 @@ public class MyListsFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_my_lists, container, false);
-        mListener.listFromMyListsFragment(view);
+        mListener.listFromMyListsFragment(view, (ProgressBar) view.findViewById(R.id.progressBarMyLists));
         view.findViewById(R.id.floatButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -75,6 +76,6 @@ public class MyListsFragment extends Fragment {
 
     public interface OnFragmentInteractionListener {
         void newListFromMyListsFragment(TextInputLayout inputListName, AlertDialog alertDialog);
-        void listFromMyListsFragment(View view);
+        void listFromMyListsFragment(View view, ProgressBar progressBar);
     }
 }

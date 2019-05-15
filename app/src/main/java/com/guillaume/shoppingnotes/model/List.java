@@ -26,8 +26,6 @@ public class List {
     @ColumnInfo(name = "is_done")
     private boolean done;
 
-    private long checked;
-
     @ColumnInfo(name = "user_id")
     @Nullable
     private String userId;
@@ -39,11 +37,10 @@ public class List {
     public List() { }
 
     @Ignore
-    public List(@NonNull String id, String name, boolean done, long checked, @Nullable String userId, @Nullable String groupId) {
+    public List(@NonNull String id, String name, boolean done, @Nullable String userId, @Nullable String groupId) {
         this.id = id;
         this.name = name;
         this.done = done;
-        this.checked = checked;
         this.userId = userId;
         this.groupId = groupId;
     }
@@ -60,10 +57,6 @@ public class List {
     public boolean getDone() { return done; }
 
     public void setDone(boolean done) { this.done = done; }
-
-    public long getChecked() { return checked; }
-
-    public void setChecked(long checked) { this.checked = checked; }
 
     @Nullable
     public String getUserId() { return userId; }

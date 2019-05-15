@@ -16,6 +16,8 @@ import android.support.annotation.NonNull;
         })
 public class HasForItem {
 
+    private boolean checked;
+
     @ColumnInfo(name = "list_id")
     @NonNull
     private String listId;
@@ -27,10 +29,15 @@ public class HasForItem {
     public HasForItem() { }
 
     @Ignore
-    public HasForItem(@NonNull String listId, @NonNull String itemId) {
+    public HasForItem(boolean checked, @NonNull String listId, @NonNull String itemId) {
+        this.checked = checked;
         this.listId = listId;
         this.itemId = itemId;
     }
+
+    public boolean getChecked() { return checked; }
+
+    public void setChecked(boolean checked) { this.checked = checked; }
 
     @NonNull
     public String getListId() { return listId; }

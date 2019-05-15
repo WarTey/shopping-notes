@@ -61,11 +61,11 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
     }
 
     @SuppressLint("SetTextI18n")
-    public void display(List list, int nbItems) {
+    public void display(List list, int nbItems, int nbChecked) {
         this.list = list;
-        if (list.getChecked() == nbItems && nbItems != 0)
+        if (nbChecked == nbItems && nbItems != 0)
             image.setImageResource(android.R.drawable.checkbox_on_background);
         name.setText(list.getName());
-        checked.setText(list.getChecked() + "/" + nbItems);
+        checked.setText(nbChecked + "/" + nbItems);
     }
 }

@@ -32,11 +32,15 @@ public class ListAdapter extends RecyclerView.Adapter<ListViewHolder> {
 
     @Override
     public void onBindViewHolder(@NonNull ListViewHolder listViewHolder, int i) {
-        int nbItems = 0;
-        for (HasForItem item: listItems)
-            if (item.getListId().equals(lists.get(i).getId()))
+        int nbItems = 0, nbChecked = 0;
+        for (HasForItem item: listItems) {
+            if (item.getListId().equals(lists.get(i).getId())) {
                 nbItems += 1;
-        listViewHolder.display(lists.get(i), nbItems);
+                if (item.getChecked())
+                    nbChecked += 1;
+            }
+        }
+        listViewHolder.display(lists.get(i), nbItems, nbChecked);
     }
 
     @Override
