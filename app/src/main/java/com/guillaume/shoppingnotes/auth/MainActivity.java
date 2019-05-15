@@ -62,10 +62,8 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         if (ConnectivityHelper.isConnectedToNetwork(this))
             auth.signInWithEmailAndPassword(inputEmail.getEditText().getText().toString().trim(), inputPassword.getEditText().getText().toString().trim())
                     .addOnCompleteListener(new FirebaseLogin(this));
-        else {
-            LoginUser loginUser = new LoginUser(db, inputEmail.getEditText().getText().toString().trim());
-            loginUser.execute(this);
-        }
+        else
+            new LoginUser(db, inputEmail.getEditText().getText().toString().trim()).execute(this);
     }
 
     @Override
@@ -113,8 +111,8 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
 
     @Override
     public void firebaseRegistered() {
-        RegisterUser registerUser = new RegisterUser(db, user);
-        registerUser.execute(this);
+        user.setId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        new RegisterUser(db, user).execute(this);
     }
 
     @Override

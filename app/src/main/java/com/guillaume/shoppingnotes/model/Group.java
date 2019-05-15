@@ -5,34 +5,38 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
 @Entity(tableName = "groups",
         indices = {@Index(value = {"user_id"})},
         foreignKeys = @ForeignKey(entity = User.class, parentColumns = "id", childColumns = "user_id"))
 public class Group {
 
-    @PrimaryKey(autoGenerate = true)
-    private Integer id;
+    @PrimaryKey
+    @NonNull
+    private String id;
 
     private String name;
 
     @ColumnInfo(name = "user_id")
-    private Integer userId;
+    private String userId;
 
-    public Group(String name, Integer userId) {
+    public Group(@NonNull String id, String name, String userId) {
+        this.id = id;
         this.name = name;
         this.userId = userId;
     }
 
-    public Integer getId() { return id; }
+    @NonNull
+    public String getId() { return id; }
 
-    public void setId(Integer id) { this.id = id; }
+    public void setId(@NonNull String id) { this.id = id; }
 
     public String getName() { return name; }
 
     public void setName(String name) { this.name = name; }
 
-    public Integer getUserId() { return userId; }
+    public String getUserId() { return userId; }
 
-    public void setUserId(Integer userId) { this.userId = userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 }

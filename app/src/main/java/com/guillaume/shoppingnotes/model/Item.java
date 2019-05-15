@@ -2,12 +2,14 @@ package com.guillaume.shoppingnotes.model;
 
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 
 @Entity(tableName = "items")
 public class Item {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    private String id;
 
     private String name;
 
@@ -15,15 +17,17 @@ public class Item {
 
     private String image;
 
-    public Item(String name, String image, Double price) {
+    public Item(@NonNull String id, String name, String image, Double price) {
+        this.id = id;
         this.name = name;
         this.price = price;
         this.image = image;
     }
 
-    public long getId() { return id; }
+    @NonNull
+    public String getId() { return id; }
 
-    public void setId(long id) { this.id = id; }
+    public void setId(@NonNull String id) { this.id = id; }
 
     public String getName() { return name; }
 

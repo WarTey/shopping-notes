@@ -3,8 +3,10 @@ package com.guillaume.shoppingnotes.model;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
 import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 @Entity(tableName = "lists",
@@ -15,55 +17,61 @@ import android.support.annotation.Nullable;
         })
 public class List {
 
-    @PrimaryKey(autoGenerate = true)
-    private long id;
+    @PrimaryKey
+    @NonNull
+    private String id;
 
     private String name;
 
     @ColumnInfo(name = "is_done")
-    private boolean isDone;
+    private boolean done;
 
     private long checked;
 
     @ColumnInfo(name = "user_id")
     @Nullable
-    private Long userId;
+    private String userId;
 
     @ColumnInfo(name = "group_id")
     @Nullable
-    private Long groupId;
+    private String groupId;
 
-    public List(String name, boolean isDone, long checked, @Nullable Long userId, @Nullable Long groupId) {
+    public List() { }
+
+    @Ignore
+    public List(@NonNull String id, String name, boolean done, long checked, @Nullable String userId, @Nullable String groupId) {
+        this.id = id;
         this.name = name;
-        this.isDone = isDone;
+        this.done = done;
         this.checked = checked;
         this.userId = userId;
         this.groupId = groupId;
     }
 
-    public long getId() { return id; }
+    @NonNull
+    public String getId() { return id; }
 
-    public void setId(long id) { this.id = id; }
+    public void setId(@NonNull String id) { this.id = id; }
 
     public String getName() { return name; }
 
     public void setName(String name) { this.name = name; }
 
-    public boolean isDone() { return isDone; }
+    public boolean getDone() { return done; }
 
-    public void setDone(boolean done) { isDone = done; }
+    public void setDone(boolean done) { this.done = done; }
 
     public long getChecked() { return checked; }
 
     public void setChecked(long checked) { this.checked = checked; }
 
     @Nullable
-    public Long getUserId() { return userId; }
+    public String getUserId() { return userId; }
 
-    public void setUserId(@Nullable Long userId) { this.userId = userId; }
+    public void setUserId(@Nullable String userId) { this.userId = userId; }
 
     @Nullable
-    public Long getGroupId() { return groupId; }
+    public String getGroupId() { return groupId; }
 
-    public void setGroupId(@Nullable Long groupId) { this.groupId = groupId; }
+    public void setGroupId(@Nullable String groupId) { this.groupId = groupId; }
 }

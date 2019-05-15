@@ -1,15 +1,20 @@
 package com.guillaume.shoppingnotes.model;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
+
+import com.google.firebase.database.annotations.NotNull;
 
 @Entity(tableName = "users")
 public class User implements Parcelable {
 
-    @PrimaryKey(autoGenerate = true)
-    private Long id;
+    @PrimaryKey
+    @NonNull
+    private String id;
 
     private String lastname;
 
@@ -21,14 +26,18 @@ public class User implements Parcelable {
 
     public User() { }
 
-    public User(String lastname, String firstname, String email, String password) {
+    @Ignore
+    public User(@NonNull String id, String lastname, String firstname, String email, String password) {
+        this.id = id;
         this.lastname = lastname;
         this.firstname = firstname;
         this.email = email;
         this.password = password;
     }
 
+    @Ignore
     private User(Parcel in) {
+        this.id = in.readString();
         this.lastname = in.readString();
         this.firstname = in.readString();
         this.email = in.readString();
@@ -60,9 +69,10 @@ public class User implements Parcelable {
         }
     };
 
-    public Long getId() { return id; }
+    @NonNull
+    public String getId() { return id; }
 
-    public void setId(Long id) { this.id = id; }
+    public void setId(@NonNull String id) { this.id = id; }
 
     public String getLastname() { return lastname; }
 

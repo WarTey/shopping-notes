@@ -67,7 +67,7 @@ public class RegisterFragment extends Fragment {
         }
 
         if (CredentialsVerification.registerVerification(inputLastname, inputFirstname, inputEmail, inputPassword, inputPasswordRepeat))
-            mListener.registerFromRegisterFragment(new User(txtLastname, txtFirstname, txtEmail, txtPassword), inputEmail);
+            mListener.registerFromRegisterFragment(new User("", txtLastname, txtFirstname, txtEmail, txtPassword), inputEmail);
     }
 
     public interface OnFragmentInteractionListener { void registerFromRegisterFragment(User user, TextInputLayout inputEmail);}

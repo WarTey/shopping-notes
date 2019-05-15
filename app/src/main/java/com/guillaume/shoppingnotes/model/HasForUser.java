@@ -17,29 +17,29 @@ public class HasForUser {
 
     @ColumnInfo(name = "group_id")
     @NonNull
-    private Long groupId;
+    private String groupId;
 
     @ColumnInfo(name = "user_id")
     @NonNull
-    private Long userId;
+    private String userId;
 
     private boolean status;
 
-    public HasForUser(@NonNull Long groupId, @NonNull Long userId, boolean status) {
+    public HasForUser(@NonNull String groupId, @NonNull String userId, boolean status) {
         this.groupId = groupId;
         this.userId = userId;
         this.status = status;
     }
 
     @NonNull
-    public Long getGroupId() { return groupId; }
+    public String getGroupId() { return groupId; }
 
-    public void setGroupId(@NonNull Long groupId) { this.groupId = groupId; }
+    public void setGroupId(@NonNull String groupId) { this.groupId = groupId; }
 
     @NonNull
-    public Long getUserId() { return userId; }
+    public String getUserId() { return userId; }
 
-    public void setUserId(@NonNull Long userId) { this.userId = userId; }
+    public void setUserId(@NonNull String userId) { this.userId = userId; }
 
     public boolean isStatus() { return status; }
 

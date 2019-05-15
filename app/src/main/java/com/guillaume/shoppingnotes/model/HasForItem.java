@@ -3,7 +3,9 @@ package com.guillaume.shoppingnotes.model;
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.ForeignKey;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.Index;
+import android.support.annotation.NonNull;
 
 @Entity(tableName = "has_for_items",
         indices = {@Index(value = {"list_id"}), @Index(value = {"item_id"})},
@@ -15,21 +17,28 @@ import android.arch.persistence.room.Index;
 public class HasForItem {
 
     @ColumnInfo(name = "list_id")
-    private long listId;
+    @NonNull
+    private String listId;
 
     @ColumnInfo(name = "item_id")
-    private long itemId;
+    @NonNull
+    private String itemId;
 
-    public HasForItem(Integer listId, Integer itemId) {
+    public HasForItem() { }
+
+    @Ignore
+    public HasForItem(@NonNull String listId, @NonNull String itemId) {
         this.listId = listId;
         this.itemId = itemId;
     }
 
-    public long getListId() { return listId; }
+    @NonNull
+    public String getListId() { return listId; }
 
-    public void setListId(long listId) { this.listId = listId; }
+    public void setListId(@NonNull String listId) { this.listId = listId; }
 
-    public long getItemId() { return itemId; }
+    @NonNull
+    public String getItemId() { return itemId; }
 
-    public void setItemId(long itemId) { this.itemId = itemId; }
+    public void setItemId(@NonNull String itemId) { this.itemId = itemId; }
 }
