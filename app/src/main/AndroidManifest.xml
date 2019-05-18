@@ -11,7 +11,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
-        <activity android:name=".shop.ShopActivity"></activity>
+        <activity android:name=".shop.ShopActivity" />
         <activity android:name=".auth.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

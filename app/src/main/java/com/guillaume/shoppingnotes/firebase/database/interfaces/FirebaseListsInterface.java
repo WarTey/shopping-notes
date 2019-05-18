@@ -5,4 +5,8 @@ import com.guillaume.shoppingnotes.model.List;
 public interface FirebaseListsInterface {
 
     void firebaseListsResponse(java.util.List<List> lists);
+
+    void firebaseListCreated(List list);
+
+    void firebaseListNonCreated(String listName);
 }

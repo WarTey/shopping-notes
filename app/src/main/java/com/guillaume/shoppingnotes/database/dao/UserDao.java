@@ -12,6 +12,9 @@ public interface UserDao {
     @Query("SELECT * FROM users WHERE email = :email")
     User getUserByEmail(String email);
 
+    @Query("SELECT id FROM users WHERE email = :email")
+    String getUserId(String email);
+
     @Insert
     void insertUser(User user);
 }

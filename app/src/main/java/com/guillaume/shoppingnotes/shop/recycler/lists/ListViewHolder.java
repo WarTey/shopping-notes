@@ -23,7 +23,7 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
 
     private List list;
 
-    public ListViewHolder(@NonNull final View itemView, final ListAdapterInterface listener) {
+    public ListViewHolder(@NonNull final View itemView, final ListAdapterInterface mListener) {
         super(itemView);
         image = itemView.findViewById(R.id.imageView);
         name = itemView.findViewById(R.id.txtName);
@@ -40,16 +40,16 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
                     public boolean onMenuItemClick(MenuItem menuItem) {
                         switch (menuItem.getItemId()) {
                             case R.id.add_items:
-                                Log.d("debug", "onMenuItemClick: 1 " + list.getId());
+                                mListener.addItemsToList(list);
                                 break;
                             case R.id.add_history:
-                                listener.historyList(list);
+                                mListener.historyList(list);
                                 break;
                             case R.id.rename:
-                                listener.initAlert(list);
+                                mListener.initAlert(list);
                                 break;
                             case R.id.delete:
-                                listener.removeList(list);
+                                mListener.removeList(list);
                                 break;
                         }
                         return false;

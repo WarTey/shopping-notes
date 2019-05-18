@@ -10,10 +10,9 @@ import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.guillaume.shoppingnotes.R;
-import com.guillaume.shoppingnotes.database.async.LoginUser;
-import com.guillaume.shoppingnotes.database.async.RegisterUser;
-import com.guillaume.shoppingnotes.database.async.interfaces.LoginUserInterface;
-import com.guillaume.shoppingnotes.database.async.interfaces.RegisterUserInterface;
+import com.guillaume.shoppingnotes.database.async.users.GetUser;
+import com.guillaume.shoppingnotes.database.async.users.InsertUser;
+import com.guillaume.shoppingnotes.database.async.interfaces.UsersInterface;
 import com.guillaume.shoppingnotes.database.AppDatabase;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseLogin;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegister;
@@ -24,7 +23,7 @@ import com.guillaume.shoppingnotes.shop.ShopActivity;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
 
-public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, RegisterUserInterface, LoginUserInterface, FirebaseRegisterInterface, FirebaseLoginInterface {
+public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, UsersInterface, FirebaseRegisterInterface, FirebaseLoginInterface {
 
     private TextInputLayout inputEmail, inputPassword;
     private ProgressBar progressBar;
@@ -63,16 +62,13 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
             auth.signInWithEmailAndPassword(inputEmail.getEditText().getText().toString().trim(), inputPassword.getEditText().getText().toString().trim())
                     .addOnCompleteListener(new FirebaseLogin(this));
         else
-            new LoginUser(db, inputEmail.getEditText().getText().toString().trim()).execute(this);
+            new GetUser(db, inputEmail.getEditText().getText().toString().trim()).execute(this);
     }
 
     @Override
     public void firebaseLogged() {
         progressBar.setVisibility(View.GONE);
-        Intent intent = new Intent(this, ShopActivity.class);
-        intent.putExtra("user", user);
-        startActivityForResult(intent, 1);
-        Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
+        connectionSuccessful(user, true);
     }
 
     @Override
@@ -82,16 +78,22 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     }
 
     @Override
-    public void userLogin(User user) {
+    public void userResponse(User user) {
+        progressBar.setVisibility(View.GONE);
         if (user != null && user.getPassword().equals(inputPassword.getEditText().getText().toString().trim())) {
-            Intent intent = new Intent(this, ShopActivity.class);
-            intent.putExtra("user", user);
-            startActivityForResult(intent, 1);
-            Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
+            connectionSuccessful(user, false);
             return;
         }
         CredentialsVerification.loginFailed(inputEmail, inputPassword);
-        progressBar.setVisibility(View.GONE);
+    }
+
+    private void connectionSuccessful(User user, boolean online) {
+        Intent intent = new Intent(this, ShopActivity.class);
+        intent.putExtra("user", user);
+        intent.putExtra("online", online);
+        startActivityForResult(intent, 1);
+        if (online) Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
+        else Toast.makeText(this, "Connection successful (Offline)", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -112,7 +114,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     @Override
     public void firebaseRegistered() {
         user.setId(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        new RegisterUser(db, user).execute(this);
+        new InsertUser(db, user).execute(this);
     }
 
     @Override
@@ -122,7 +124,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     }
 
     @Override
-    public void userRegistered() {
+    public void userCreated() {
         progressBar.setVisibility(View.GONE);
         getSupportFragmentManager().beginTransaction().replace(R.id.login, new LoginFragment()).addToBackStack(null).commit();
         Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
