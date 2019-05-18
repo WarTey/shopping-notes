@@ -6,7 +6,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseRegisterInterface;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseAuthHelper;
@@ -33,7 +32,4 @@ public class FirebaseRegister implements OnCompleteListener<AuthResult>, Firebas
 
     @Override
     public void firebaseUserCreated() { mListener.firebaseRegistered(); }
-
-    @Override
-    public void firebaseUserNonCreated() { mListener.firebaseNonRegistered(); }
 }

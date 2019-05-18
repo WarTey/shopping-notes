@@ -2,6 +2,7 @@ package com.guillaume.shoppingnotes.firebase.database;
 
 import android.support.annotation.NonNull;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -36,5 +37,13 @@ public class FirebaseHasForItemsHelper {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) { }
         });
+    }
+
+    public void createHasForItems(String listId, final String itemId) {
+        databaseReference.child(listId + itemId).setValue(new HasForItem(false, listId, itemId))
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) { mListener.firebaseHasForItemsCreated(itemId); }
+            });
     }
 }

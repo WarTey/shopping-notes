@@ -1,9 +1,6 @@
 package com.guillaume.shoppingnotes.firebase.database;
 
-import android.support.annotation.NonNull;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
@@ -22,12 +19,9 @@ public class FirebaseAuthHelper {
 
     public void createUser(User user) {
         databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(user)
-            .addOnCompleteListener(new OnCompleteListener<Void>() {
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) mListener.firebaseUserCreated();
-                else mListener.firebaseUserNonCreated();
-                }
+                public void onSuccess(Void aVoid) { mListener.firebaseUserCreated(); }
             });
     }
 }

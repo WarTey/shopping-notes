@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.PopupMenu;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -33,29 +32,29 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
         itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                PopupMenu popupMenu = new PopupMenu(toolbar.getContext(), toolbar);
-                popupMenu.inflate(R.menu.options_menu_lists);
-                popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem menuItem) {
-                        switch (menuItem.getItemId()) {
-                            case R.id.add_items:
-                                mListener.addItemsToList(list);
-                                break;
-                            case R.id.add_history:
-                                mListener.historyList(list);
-                                break;
-                            case R.id.rename:
-                                mListener.initAlert(list);
-                                break;
-                            case R.id.delete:
-                                mListener.removeList(list);
-                                break;
-                        }
-                        return false;
+            PopupMenu popupMenu = new PopupMenu(toolbar.getContext(), toolbar);
+            popupMenu.inflate(R.menu.options_menu_lists);
+            popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                @Override
+                public boolean onMenuItemClick(MenuItem menuItem) {
+                    switch (menuItem.getItemId()) {
+                        case R.id.add_items:
+                            mListener.addItemsToList(list);
+                            break;
+                        case R.id.add_history:
+                            mListener.historyList(list);
+                            break;
+                        case R.id.rename:
+                            mListener.initAlert(list);
+                            break;
+                        case R.id.delete:
+                            mListener.removeList(list);
+                            break;
                     }
-                });
-                popupMenu.show();
+                    return false;
+                }
+            });
+            popupMenu.show();
             }
         });
     }

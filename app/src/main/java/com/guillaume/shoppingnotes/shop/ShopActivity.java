@@ -3,6 +3,8 @@ package com.guillaume.shoppingnotes.shop;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TextInputLayout;
@@ -15,8 +17,10 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -25,26 +29,36 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.database.AppDatabase;
 import com.guillaume.shoppingnotes.database.async.hasforitems.GetHasForItems;
+import com.guillaume.shoppingnotes.database.async.hasforitems.InsertHasForItems;
 import com.guillaume.shoppingnotes.database.async.interfaces.HasForItemsInterface;
+import com.guillaume.shoppingnotes.database.async.interfaces.ItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ListsInterface;
+import com.guillaume.shoppingnotes.database.async.items.InsertItems;
+import com.guillaume.shoppingnotes.database.async.lists.DeleteList;
 import com.guillaume.shoppingnotes.database.async.lists.GetLists;
 import com.guillaume.shoppingnotes.database.async.lists.InsertList;
+import com.guillaume.shoppingnotes.database.async.lists.UpdateList;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseHasForItemsHelper;
+import com.guillaume.shoppingnotes.firebase.database.FirebaseItemsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseListsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseUsersHelper;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseHasForItemsInterface;
+import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseItemsInterface;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseListsInterface;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseUsersInterface;
 import com.guillaume.shoppingnotes.model.HasForItem;
+import com.guillaume.shoppingnotes.model.Item;
 import com.guillaume.shoppingnotes.model.User;
 import com.guillaume.shoppingnotes.model.List;
+import com.guillaume.shoppingnotes.shop.recycler.items.ItemAdapter;
+import com.guillaume.shoppingnotes.shop.recycler.items.ItemAdapterInterface;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapter;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapterInterface;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 
 import java.util.ArrayList;
 
-public class ShopActivity extends AppCompatActivity implements MyListsFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ListsInterface, HasForItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface {
+public class ShopActivity extends AppCompatActivity implements MyListsFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
 
     private java.util.List<HasForItem> hasForItems;
     private FirebaseDatabase firebaseDatabase;
@@ -56,6 +70,7 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     private Toolbar toolbar;
     private AppDatabase db;
     private boolean online;
+    private String listId;
     private User user;
 
     @Override
@@ -164,12 +179,36 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
         new InsertList(db, list, user.getEmail()).execute();
         Toast.makeText(this, "List " + list.getName() + " created", Toast.LENGTH_SHORT).show();
         alertDialog.cancel();
-        //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new NewListFragment()).addToBackStack(null).commit();
-        //toolbar.setTitle(R.string.new_list);
+        startNewListFragment(list.getId());
     }
 
     @Override
-    public void firebaseListNonCreated(String listName) { Toast.makeText(this, "List " + listName + " not created", Toast.LENGTH_SHORT).show(); }
+    public void firebaseListUpdated(List list) {
+        Toast.makeText(this, "List " + list.getName() + " updated", Toast.LENGTH_SHORT).show();
+        new UpdateList(db, list, user.getEmail()).execute();
+    }
+
+    @Override
+    public void firebaseListDeleted(List list) {
+        Toast.makeText(this, "List " + list.getName() + " deleted", Toast.LENGTH_SHORT).show();
+        new DeleteList(db, list, user.getEmail()).execute();
+    }
+
+    @Override
+    public void firebaseItemCreated(Item item) {
+        new FirebaseHasForItemsHelper(this, firebaseDatabase).createHasForItems(listId, item.getId());
+        new InsertItems(this, user.getEmail(), db, item).execute();
+    }
+
+    @Override
+    public void firebaseHasForItemsCreated(String itemId) {
+        Toast.makeText(this, "Item added to your list", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void itemCreated(Item item) {
+        new InsertHasForItems(user.getEmail(), listId, item.getId(), db).execute();
+    }
 
     @Override
     public void listsResponse(java.util.List<List> lists) {
@@ -192,9 +231,11 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
                     listsNotDone.add(list);
 
         RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        recyclerView.setAdapter(new ListAdapter(listsNotDone, this, hasForItems));
+        if (recyclerView != null) {
+            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(new ListAdapter(listsNotDone, this, hasForItems));
+        }
     }
 
     @Override
@@ -209,7 +250,8 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
                     return;
                 }
             new FirebaseListsHelper(this, firebaseDatabase).createList(txtListName);
-        } else if (!online) Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+        } else if (!online)
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -218,34 +260,95 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
         this.progressBar.setVisibility(View.VISIBLE);
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             new FirebaseListsHelper(this, firebaseDatabase).getLists();
-        } else if (!online) new GetLists(db, user.getEmail()).execute(this);
+        } else if (!online)
+            new GetLists(db, user.getEmail()).execute(this);
     }
 
     @Override
     public void addItemsToList(List list) {
-        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            startNewListFragment(list.getId());
+        else if (!online)
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+    }
 
-        } else if (!online) Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+    private void startNewListFragment(String listId) {
+        this.listId = listId;
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new NewListFragment()).addToBackStack(null).commit();
+        toolbar.setTitle(R.string.new_list);
     }
 
     @Override
-    public void initAlert(List list) {
+    public void initAlert(final List list) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            LayoutInflater layoutInflater = getLayoutInflater();
+            @SuppressLint("InflateParams") View view = layoutInflater.inflate(R.layout.list_name, null);
+            final TextInputLayout inputListName = view.findViewById(R.id.inputListName);
+            Button btnCreate = view.findViewById(R.id.btnCreateList);
 
-        } else if (!online) Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            inputListName.getEditText().setText(list.getName());
+            btnCreate.setText(R.string.rename);
+            builder.setCancelable(true);
+            builder.setView(view);
+            alertDialog = builder.create();
+            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            alertDialog.show();
+
+            view.findViewById(R.id.btnCreateList).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) { renameList(list, inputListName); }
+            });
+        } else if (!online)
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+    }
+
+    private void renameList(List list, TextInputLayout inputListName) {
+        String txtListName = inputListName.getEditText().getText().toString().trim();
+        if (txtListName.isEmpty())
+            inputListName.setError("This field cannot be empty");
+        else {
+            for (List userList: lists)
+                if (txtListName.equals(userList.getName())) {
+                    inputListName.setError("This name is already taken by one of your lists");
+                    return;
+                }
+            list.setName(txtListName);
+            new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
+            alertDialog.cancel();
+        }
     }
 
     @Override
     public void removeList(List list) {
-        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
-
-        } else if (!online) Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            new FirebaseListsHelper(this, firebaseDatabase).deleteList(list);
+        else if (!online)
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void historyList(List list) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             list.setDone(true);
-        } else if (!online) Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
+        } else if (!online)
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void showItemsFromNewListFragment(View view, java.util.List<Item> items) {
+        RecyclerView recyclerView = findViewById(R.id.newListRecyclerView);
+        if (recyclerView != null) {
+            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(new ItemAdapter(items, ShopActivity.this));
+        }
+    }
+
+    @Override
+    public void addItemToList(Item item) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            new FirebaseItemsHelper(this, firebaseDatabase).createItem(item);
     }
 }

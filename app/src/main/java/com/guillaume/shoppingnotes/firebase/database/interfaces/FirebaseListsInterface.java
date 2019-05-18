@@ -8,5 +8,7 @@ public interface FirebaseListsInterface {
 
     void firebaseListCreated(List list);
 
-    void firebaseListNonCreated(String listName);
+    void firebaseListUpdated(List list);
+
+    void firebaseListDeleted(List list);
 }

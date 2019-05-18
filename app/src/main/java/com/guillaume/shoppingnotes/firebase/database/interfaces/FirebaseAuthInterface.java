@@ -1,8 +1,3 @@
 package com.guillaume.shoppingnotes.firebase.database.interfaces;
 
-public interface FirebaseAuthInterface {
-
-    void firebaseUserCreated();
-
-    void firebaseUserNonCreated();
-}
+public interface FirebaseAuthInterface { void firebaseUserCreated();}

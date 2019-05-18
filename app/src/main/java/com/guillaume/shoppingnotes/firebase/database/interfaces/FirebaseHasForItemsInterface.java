@@ -7,4 +7,6 @@ import java.util.List;
 public interface FirebaseHasForItemsInterface {
 
     void firebaseHasForItemsResponse(List<HasForItem> hasForItems);
+
+    void firebaseHasForItemsCreated(String itemId);
 }

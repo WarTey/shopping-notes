@@ -14,6 +14,9 @@ public interface HasForItemDao {
     @Query("SELECT * FROM has_for_items")
     List<HasForItem> getHasForItems();
 
+    @Query("SELECT * FROM has_for_items WHERE item_id = :itemId AND list_id = :listId")
+    HasForItem getHasForItemsById(String itemId, String listId);
+
     @Insert
-    void insertHasForItem(HasForItem hasForItem);
+    void insertHasForItem(HasForItem... hasForItem);
 }

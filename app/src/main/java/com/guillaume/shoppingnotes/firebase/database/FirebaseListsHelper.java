@@ -2,8 +2,7 @@ package com.guillaume.shoppingnotes.firebase.database;
 
 import android.support.annotation.NonNull;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -47,12 +46,25 @@ public class FirebaseListsHelper {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         final List list = new List(listName + userId, listName, false, userId, null);
         databaseReference.child(listName + userId).setValue(list)
-            .addOnCompleteListener(new OnCompleteListener<Void>() {
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
-                public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) mListener.firebaseListCreated(list);
-                else mListener.firebaseListNonCreated(list.getName());
-                }
+                public void onSuccess(Void aVoid) { mListener.firebaseListCreated(list); }
+            });
+    }
+
+    public void updateList(final List list) {
+        databaseReference.child(list.getId()).setValue(list)
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) { mListener.firebaseListUpdated(list); }
+            });
+    }
+
+    public void deleteList(final List list) {
+        databaseReference.child(list.getId()).setValue(null)
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) { mListener.firebaseListDeleted(list); }
             });
     }
 }
