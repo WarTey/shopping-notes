@@ -6,12 +6,8 @@
         android:title="@string/see_my_list" />
 
     <item
-        android:id="@+id/add_items"
-        android:title="@string/add_items" />
-
-    <item
-        android:id="@+id/add_history"
-        android:title="@string/add_to_my_history" />
+        android:id="@+id/back_list"
+        android:title="@string/add_to_my_lists" />
 
     <item
         android:id="@+id/rename"

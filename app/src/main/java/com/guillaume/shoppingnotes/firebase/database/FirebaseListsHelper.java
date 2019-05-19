@@ -24,14 +24,14 @@ public class FirebaseListsHelper {
         databaseReference = firebaseDatabase.getReference("lists");
     }
 
-    public void getLists() {
+    public void getLists(final boolean history) {
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 java.util.List<List> lists = new ArrayList<>();
                 for (DataSnapshot keyNode : dataSnapshot.getChildren()) {
                     List list = keyNode.getValue(List.class);
-                    if (list != null && list.getUserId() != null && list.getUserId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))
+                    if (list != null && list.getUserId() != null && list.getUserId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) && list.getDone() == history)
                         lists.add(keyNode.getValue(List.class));
                 }
                 mListener.firebaseListsResponse(lists);

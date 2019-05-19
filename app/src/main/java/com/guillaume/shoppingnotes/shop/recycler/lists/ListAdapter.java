@@ -12,14 +12,16 @@ import com.guillaume.shoppingnotes.model.List;
 
 public class ListAdapter extends RecyclerView.Adapter<ListViewHolder> {
 
+    private boolean history;
     private java.util.List<List> lists;
     private ListAdapterInterface listener;
     private java.util.List<HasForItem> listItems;
 
-    public ListAdapter(java.util.List<List> lists, ListAdapterInterface listener, java.util.List<HasForItem> listItems) {
+    public ListAdapter(java.util.List<List> lists, ListAdapterInterface listener, java.util.List<HasForItem> listItems, boolean history) {
         this.lists = lists;
         this.listener = listener;
         this.listItems = listItems;
+        this.history = history;
     }
 
     @NonNull
@@ -27,7 +29,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListViewHolder> {
     public ListViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
         View view = inflater.inflate(R.layout.list_recycler, viewGroup, false);
-        return new ListViewHolder(view, listener);
+        return new ListViewHolder(view, listener, history);
     }
 
     @Override

@@ -10,18 +10,20 @@ import com.guillaume.shoppingnotes.model.List;
 public class GetLists extends AsyncTask<ListsInterface, Void, java.util.List<List>> {
 
     private ListsInterface mListener;
+    private boolean history;
     private AppDatabase db;
     private String email;
 
-    public GetLists(AppDatabase db, String email) {
+    public GetLists(AppDatabase db, String email, boolean history) {
         this.db = db;
         this.email = email;
+        this.history = history;
     }
 
     @Override
     protected java.util.List<List> doInBackground(ListsInterface... getListsInterfaces) {
         mListener = getListsInterfaces[0];
-        return db.listDao().getListsByUserId(db.userDao().getUserId(email), false);
+        return db.listDao().getListsByUserId(db.userDao().getUserId(email), history);
     }
 
     @Override

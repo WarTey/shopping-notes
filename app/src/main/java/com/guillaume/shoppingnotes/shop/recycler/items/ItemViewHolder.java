@@ -9,6 +9,7 @@ import android.widget.TextView;
 
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.model.Item;
+import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 import com.squareup.picasso.Picasso;
 
 public class ItemViewHolder extends RecyclerView.ViewHolder {

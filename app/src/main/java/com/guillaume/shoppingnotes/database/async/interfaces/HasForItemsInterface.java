@@ -1,7 +1,11 @@
 package com.guillaume.shoppingnotes.database.async.interfaces;
 
 import com.guillaume.shoppingnotes.model.HasForItem;
+import com.guillaume.shoppingnotes.model.List;
 
-import java.util.List;
+public interface HasForItemsInterface {
 
-public interface HasForItemsInterface { void hasForItemsResponse(List<HasForItem> hasForItems); }
+    void hasForItemsResponse(java.util.List<HasForItem> hasForItems);
+
+    void hasForItemsDeleted(List list);
+}

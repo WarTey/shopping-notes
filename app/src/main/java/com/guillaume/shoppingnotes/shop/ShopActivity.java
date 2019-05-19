@@ -28,6 +28,7 @@ import android.widget.Toast;
 import com.google.firebase.database.FirebaseDatabase;
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.database.AppDatabase;
+import com.guillaume.shoppingnotes.database.async.hasforitems.DeleteHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.GetHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.InsertHasForItems;
 import com.guillaume.shoppingnotes.database.async.interfaces.HasForItemsInterface;
@@ -58,7 +59,7 @@ import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 
 import java.util.ArrayList;
 
-public class ShopActivity extends AppCompatActivity implements MyListsFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
+public class ShopActivity extends AppCompatActivity implements MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
 
     private java.util.List<HasForItem> hasForItems;
     private FirebaseDatabase firebaseDatabase;
@@ -66,10 +67,10 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     private java.util.List<List> lists;
     private ProgressBar progressBar;
     private AlertDialog alertDialog;
+    private boolean online, history;
     private DrawerLayout drawer;
     private Toolbar toolbar;
     private AppDatabase db;
-    private boolean online;
     private String listId;
     private User user;
 
@@ -131,11 +132,12 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
         switch (menuItem.getItemId()) {
             case R.id.nav_my_lists:
-                //getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListsFragment()).addToBackStack(null).commit();
                 toolbar.setTitle(R.string.my_lists);
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListsFragment()).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_history:
                 toolbar.setTitle(R.string.my_history);
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HistoryFragment()).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_groups:
                 toolbar.setTitle(R.string.my_groups);
@@ -191,13 +193,13 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     @Override
     public void firebaseListDeleted(List list) {
         Toast.makeText(this, "List " + list.getName() + " deleted", Toast.LENGTH_SHORT).show();
-        new DeleteList(db, list, user.getEmail()).execute();
+        new DeleteHasForItems(user.getEmail(), list, db).execute(this);
     }
 
     @Override
     public void firebaseItemCreated(Item item) {
         new FirebaseHasForItemsHelper(this, firebaseDatabase).createHasForItems(listId, item.getId());
-        new InsertItems(this, user.getEmail(), db, item).execute();
+        new InsertItems(user.getEmail(), db, item).execute(this);
     }
 
     @Override
@@ -211,6 +213,11 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     }
 
     @Override
+    public void hasForItemsDeleted(List list) {
+        new DeleteList(db, list, user.getEmail()).execute();
+    }
+
+    @Override
     public void listsResponse(java.util.List<List> lists) {
         this.lists = lists;
         new GetHasForItems(db).execute(this);
@@ -221,21 +228,6 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
         this.hasForItems = hasForItems;
         initRecyclerViewLists();
         progressBar.setVisibility(View.GONE);
-    }
-
-    public void initRecyclerViewLists() {
-        java.util.List<List> listsNotDone = new ArrayList<>();
-        if (lists != null)
-            for (List list : lists)
-                if (!list.getDone())
-                    listsNotDone.add(list);
-
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        if (recyclerView != null) {
-            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            recyclerView.setAdapter(new ListAdapter(listsNotDone, this, hasForItems));
-        }
     }
 
     @Override
@@ -255,13 +247,25 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     }
 
     @Override
-    public void listFromMyListsFragment(View view, ProgressBar progressBar) {
+    public void listFromMyListsFragment(ProgressBar progressBar) {
         this.progressBar = progressBar;
         this.progressBar.setVisibility(View.VISIBLE);
+        history = false;
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
-            new FirebaseListsHelper(this, firebaseDatabase).getLists();
+            new FirebaseListsHelper(this, firebaseDatabase).getLists(history);
         } else if (!online)
-            new GetLists(db, user.getEmail()).execute(this);
+            new GetLists(db, user.getEmail(), this.history).execute(this);
+    }
+
+    @Override
+    public void listFromHistoryFragment(ProgressBar progressBar) {
+        this.progressBar = progressBar;
+        this.progressBar.setVisibility(View.VISIBLE);
+        history = true;
+        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+            new FirebaseListsHelper(this, firebaseDatabase).getLists(history);
+        } else if (!online)
+            new GetLists(db, user.getEmail(), this.history).execute(this);
     }
 
     @Override
@@ -270,12 +274,6 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
             startNewListFragment(list.getId());
         else if (!online)
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
-    }
-
-    private void startNewListFragment(String listId) {
-        this.listId = listId;
-        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new NewListFragment()).addToBackStack(null).commit();
-        toolbar.setTitle(R.string.new_list);
     }
 
     @Override
@@ -303,22 +301,6 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
 
-    private void renameList(List list, TextInputLayout inputListName) {
-        String txtListName = inputListName.getEditText().getText().toString().trim();
-        if (txtListName.isEmpty())
-            inputListName.setError("This field cannot be empty");
-        else {
-            for (List userList: lists)
-                if (txtListName.equals(userList.getName())) {
-                    inputListName.setError("This name is already taken by one of your lists");
-                    return;
-                }
-            list.setName(txtListName);
-            new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
-            alertDialog.cancel();
-        }
-    }
-
     @Override
     public void removeList(List list) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
@@ -331,6 +313,23 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     public void historyList(List list) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             list.setDone(true);
+            new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
+        } else if (!online)
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void seeItems(List list) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+
+        } else if (!online)
+            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void noHistoryList(List list) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+            list.setDone(false);
             new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
         } else if (!online)
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
@@ -350,5 +349,36 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     public void addItemToList(Item item) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             new FirebaseItemsHelper(this, firebaseDatabase).createItem(item);
+    }
+
+    private void startNewListFragment(String listId) {
+        this.listId = listId;
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new NewListFragment()).addToBackStack(null).commit();
+        toolbar.setTitle(R.string.new_list);
+    }
+
+    private void initRecyclerViewLists() {
+        RecyclerView recyclerView = findViewById(R.id.recyclerView);
+        if (recyclerView != null) {
+            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(new ListAdapter(lists, this, hasForItems, history));
+        }
+    }
+
+    private void renameList(List list, TextInputLayout inputListName) {
+        String txtListName = inputListName.getEditText().getText().toString().trim();
+        if (txtListName.isEmpty())
+            inputListName.setError("This field cannot be empty");
+        else {
+            for (List userList: lists)
+                if (txtListName.equals(userList.getName())) {
+                    inputListName.setError("This name is already taken by one of your lists");
+                    return;
+                }
+            list.setName(txtListName);
+            new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
+            alertDialog.cancel();
+        }
     }
 }

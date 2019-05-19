@@ -11,8 +11,8 @@ import com.guillaume.shoppingnotes.model.List;
 @Dao
 public interface ListDao {
 
-    @Query("SELECT * FROM lists WHERE user_id = :userId AND is_done = :done")
-    java.util.List<List> getListsByUserId(String userId, boolean done);
+    @Query("SELECT * FROM lists WHERE user_id = :userId AND is_done = :isDone")
+    java.util.List<List> getListsByUserId(String userId, boolean isDone);
 
     @Insert
     void insertList(List list);

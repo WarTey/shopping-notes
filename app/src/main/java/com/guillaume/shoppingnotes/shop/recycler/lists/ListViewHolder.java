@@ -22,7 +22,7 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
 
     private List list;
 
-    public ListViewHolder(@NonNull final View itemView, final ListAdapterInterface mListener) {
+    public ListViewHolder(@NonNull final View itemView, final ListAdapterInterface mListener, final boolean history) {
         super(itemView);
         image = itemView.findViewById(R.id.imageView);
         name = itemView.findViewById(R.id.txtName);
@@ -33,16 +33,25 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
             @Override
             public void onClick(View v) {
             PopupMenu popupMenu = new PopupMenu(toolbar.getContext(), toolbar);
-            popupMenu.inflate(R.menu.options_menu_lists);
+            if (history)
+                popupMenu.inflate(R.menu.options_menu_history);
+            else
+                popupMenu.inflate(R.menu.options_menu_lists);
             popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                 @Override
                 public boolean onMenuItemClick(MenuItem menuItem) {
                     switch (menuItem.getItemId()) {
+                        case R.id.see_items:
+                            mListener.seeItems(list);
+                            break;
                         case R.id.add_items:
                             mListener.addItemsToList(list);
                             break;
                         case R.id.add_history:
                             mListener.historyList(list);
+                            break;
+                        case R.id.back_list:
+                            mListener.noHistoryList(list);
                             break;
                         case R.id.rename:
                             mListener.initAlert(list);

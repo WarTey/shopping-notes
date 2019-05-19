@@ -40,6 +40,7 @@ public class NewListFragment extends Fragment {
         items = new ArrayList<>();
         requestQueue = Volley.newRequestQueue(getActivity());
         progressBar = view.findViewById(R.id.progressBarNewList);
+        progressBar.setVisibility(View.VISIBLE);
         showItems(view);
         return view;
     }
@@ -73,6 +74,7 @@ public class NewListFragment extends Fragment {
                             items.add(new Item(item.getString("upc"), item.getString("name"), item.getString("thumbnailImage"), item.getDouble("salePrice")));
                     }
                     mListener.showItemsFromNewListFragment(view, items);
+                    progressBar.setVisibility(View.GONE);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
