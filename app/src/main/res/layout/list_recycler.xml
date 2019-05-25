@@ -19,7 +19,7 @@
         android:layout_marginLeft="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/checkbox_off_background"
+        app:srcCompat="@drawable/checkbox_unchecked"
         android:contentDescription="@string/item_picture" />
 
     <TextView

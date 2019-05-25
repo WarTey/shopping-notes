@@ -101,13 +101,12 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         this.inputEmail = inputEmail;
         this.user = user;
 
-        progressBar = findViewById(R.id.progressBarRegister);
-        progressBar.setVisibility(View.VISIBLE);
-
-        if (ConnectivityHelper.isConnectedToNetwork(this))
+        if (ConnectivityHelper.isConnectedToNetwork(this)) {
+            progressBar = findViewById(R.id.progressBarRegister);
+            progressBar.setVisibility(View.VISIBLE);
             auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
                     .addOnCompleteListener(new FirebaseRegister(this, user));
-        else
+        } else
             Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
     }
 

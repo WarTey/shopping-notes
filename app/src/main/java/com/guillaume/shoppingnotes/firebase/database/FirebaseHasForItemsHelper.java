@@ -1,6 +1,7 @@
 package com.guillaume.shoppingnotes.firebase.database;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -45,5 +46,9 @@ public class FirebaseHasForItemsHelper {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseHasForItemsCreated(itemId); }
             });
+    }
+
+    public void checkHasForItems(String listId, final String itemId, boolean checked) {
+        databaseReference.child(listId + itemId).setValue(new HasForItem(checked, listId, itemId));
     }
 }

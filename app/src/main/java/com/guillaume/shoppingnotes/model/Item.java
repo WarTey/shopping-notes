@@ -1,6 +1,7 @@
 package com.guillaume.shoppingnotes.model;
 
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.Ignore;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
@@ -17,6 +18,9 @@ public class Item {
 
     private String image;
 
+    public Item() { }
+
+    @Ignore
     public Item(@NonNull String id, String name, String image, Double price) {
         this.id = id;
         this.name = name;

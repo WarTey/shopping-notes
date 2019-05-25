@@ -72,8 +72,8 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
     public void display(List list, int nbItems, int nbChecked) {
         this.list = list;
         if (nbChecked == nbItems && nbItems != 0)
-            image.setImageResource(android.R.drawable.checkbox_on_background);
-        name.setText(list.getName());
+            image.setImageResource(R.drawable.checkbox_checked);
+        name.setText(list.getName().length() > 15 ? list.getName().substring(0, 15) + "..." : list.getName());
         checked.setText(nbChecked + "/" + nbItems);
     }
 }

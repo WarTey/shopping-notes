@@ -17,10 +17,12 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -34,6 +36,7 @@ import com.guillaume.shoppingnotes.database.async.hasforitems.InsertHasForItems;
 import com.guillaume.shoppingnotes.database.async.interfaces.HasForItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ListsInterface;
+import com.guillaume.shoppingnotes.database.async.items.GetItems;
 import com.guillaume.shoppingnotes.database.async.items.InsertItems;
 import com.guillaume.shoppingnotes.database.async.lists.DeleteList;
 import com.guillaume.shoppingnotes.database.async.lists.GetLists;
@@ -57,12 +60,15 @@ import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapter;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapterInterface;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 
-public class ShopActivity extends AppCompatActivity implements MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
+public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
 
     private java.util.List<HasForItem> hasForItems;
     private FirebaseDatabase firebaseDatabase;
+    private java.util.List<Item> items;
     private TextView txtEmail, txtName;
     private java.util.List<List> lists;
     private ProgressBar progressBar;
@@ -123,8 +129,10 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
         txtName = viewNavHeader.findViewById(R.id.txtName);
         txtEmail = viewNavHeader.findViewById(R.id.txtEmail);
         if (user != null) {
-            txtName.setText(user.getFirstname() + " " + user.getLastname());
-            txtEmail.setText(user.getEmail());
+            String firstname = user.getFirstname().length() > 8 ? user.getFirstname().substring(0, 8) + "..." : user.getFirstname();
+            String lastname = user.getLastname().length() > 8 ? user.getLastname().substring(0, 8) + "..." : user.getLastname();
+            txtName.setText(firstname + " " + lastname);
+            txtEmail.setText(user.getEmail().length() > 8 ? user.getEmail().substring(0, 8) + "..." : user.getEmail());
         }
     }
 
@@ -159,8 +167,10 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     @Override
     public void firebaseUserResponse(User user) {
         this.user = user;
-        txtName.setText(user.getFirstname() + " " + user.getLastname());
-        txtEmail.setText(user.getEmail());
+        String firstname = user.getFirstname().length() > 8 ? user.getFirstname().substring(0, 8) + "..." : user.getFirstname();
+        String lastname = user.getLastname().length() > 8 ? user.getLastname().substring(0, 8) + "..." : user.getLastname();
+        txtName.setText(firstname + " " + lastname);
+        txtEmail.setText(user.getEmail().length() > 8 ? user.getEmail().substring(0, 8) + "..." : user.getEmail());
     }
 
     @Override
@@ -208,6 +218,13 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     }
 
     @Override
+    public void firebaseItemsResponse(java.util.List<Item> items) {
+        this.items = items;
+        initRecyclerViewItems();
+        progressBar.setVisibility(View.GONE);
+    }
+
+    @Override
     public void itemCreated(Item item) {
         new InsertHasForItems(user.getEmail(), listId, item.getId(), db).execute();
     }
@@ -226,7 +243,15 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     @Override
     public void hasForItemsResponse(java.util.List<HasForItem> hasForItems) {
         this.hasForItems = hasForItems;
+        //Log.e("debug", "test");
         initRecyclerViewLists();
+        progressBar.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void itemsResponse(java.util.List<Item> items) {
+        this.items = items;
+        initRecyclerViewItems();
         progressBar.setVisibility(View.GONE);
     }
 
@@ -266,6 +291,27 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
             new FirebaseListsHelper(this, firebaseDatabase).getLists(history);
         } else if (!online)
             new GetLists(db, user.getEmail(), this.history).execute(this);
+    }
+
+    @Override
+    public void showItemsFromNewListFragment(View view, java.util.List<Item> items) {
+        RecyclerView recyclerView = findViewById(R.id.newListRecyclerView);
+        if (recyclerView != null) {
+            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(new ItemAdapter(items, ShopActivity.this, true, null, null));
+        }
+    }
+
+    @Override
+    public void listFromMyListFragment(ProgressBar progressBar) {
+        this.progressBar = progressBar;
+        this.progressBar.setVisibility(View.VISIBLE);
+
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            new FirebaseItemsHelper(this, firebaseDatabase).getItems();
+        else
+            new GetItems(db).execute(this);
     }
 
     @Override
@@ -319,12 +365,7 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     }
 
     @Override
-    public void seeItems(List list) {
-        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
-
-        } else if (!online)
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
-    }
+    public void seeItems(List list) { startListFragment(list); }
 
     @Override
     public void noHistoryList(List list) {
@@ -336,25 +377,35 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
     }
 
     @Override
-    public void showItemsFromNewListFragment(View view, java.util.List<Item> items) {
-        RecyclerView recyclerView = findViewById(R.id.newListRecyclerView);
-        if (recyclerView != null) {
-            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            recyclerView.setAdapter(new ItemAdapter(items, ShopActivity.this));
-        }
-    }
-
-    @Override
     public void addItemToList(Item item) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             new FirebaseItemsHelper(this, firebaseDatabase).createItem(item);
     }
 
+    @Override
+    public void checkItem(Item item, ImageView checked) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            for (HasForItem hasForItem: hasForItems)
+                if (hasForItem.getListId().equals(this.listId) && hasForItem.getItemId().equals(item.getId())) {
+                    if (!hasForItem.getChecked())
+                        checked.setImageResource(R.drawable.check_mark);
+                    else
+                        checked.setImageResource(android.R.color.transparent);
+                    new FirebaseHasForItemsHelper(this, firebaseDatabase).checkHasForItems(this.listId, item.getId(), !hasForItem.getChecked());
+                }
+    }
+
     private void startNewListFragment(String listId) {
         this.listId = listId;
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new NewListFragment()).addToBackStack(null).commit();
-        toolbar.setTitle(R.string.new_list);
+        for (List list: lists)
+            if (list.getId().equals(listId))
+                toolbar.setTitle(list.getName());
+    }
+
+    private void startListFragment(List list) {
+        this.listId = list.getId();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListFragment()).addToBackStack(null).commit();
     }
 
     private void initRecyclerViewLists() {
@@ -364,6 +415,40 @@ public class ShopActivity extends AppCompatActivity implements MyListsFragment.O
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             recyclerView.setAdapter(new ListAdapter(lists, this, hasForItems, history));
         }
+    }
+
+    private void initRecyclerViewItems() {
+        java.util.List<Item> listItems = new ArrayList<>();
+        for (Item item: items) {
+            for (HasForItem hasForItem: hasForItems) {
+                //for (int i = 0; i < hasForItem.getNumber())
+                if (hasForItem.getItemId().equals(item.getId()) && hasForItem.getListId().equals(listId)) {
+                    listItems.add(item);
+                }
+            }
+        }
+
+        RecyclerView recyclerView = findViewById(R.id.newListRecyclerView);
+        if (recyclerView != null) {
+            setMyListToolbar(listItems);
+            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+            recyclerView.setLayoutManager(new LinearLayoutManager(this));
+            recyclerView.setAdapter(new ItemAdapter(listItems, ShopActivity.this, false, hasForItems, listId));
+        }
+    }
+
+    private void setMyListToolbar(java.util.List<Item> items) {
+        double price = 0;
+        for (Item item: items)
+            price += item.getPrice();
+
+        for (List list: lists)
+            if (list.getId().equals(listId)) {
+                if (list.getName().length() > 15)
+                    toolbar.setTitle(list.getName().substring(0, 15) + "... - " + new BigDecimal(price).setScale(2, RoundingMode.HALF_UP).doubleValue() + "€");
+                else
+                    toolbar.setTitle(list.getName() + " - " + new BigDecimal(price).setScale(2, RoundingMode.HALF_UP).doubleValue() + "€");
+            }
     }
 
     private void renameList(List list, TextInputLayout inputListName) {
