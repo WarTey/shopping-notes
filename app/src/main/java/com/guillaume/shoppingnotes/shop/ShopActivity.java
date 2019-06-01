@@ -305,7 +305,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                     return;
                 }
             new FirebaseListsHelper(this, firebaseDatabase).createList(txtListName);
-        } else if (!online)
+        } else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
@@ -316,7 +316,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         history = false;
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             new FirebaseListsHelper(this, firebaseDatabase).getLists(history);
-        } else if (!online)
+        } else if (!online || !ConnectivityHelper.isConnectedToNetwork(this))
             new GetLists(db, user.getEmail(), this.history).execute(this);
     }
 
@@ -327,7 +327,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         history = true;
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             new FirebaseListsHelper(this, firebaseDatabase).getLists(history);
-        } else if (!online)
+        } else if (!online || !ConnectivityHelper.isConnectedToNetwork(this))
             new GetLists(db, user.getEmail(), this.history).execute(this);
     }
 
@@ -349,7 +349,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             new FirebaseItemsHelper(this, firebaseDatabase).getItems();
-        else
+        else if (!online || !ConnectivityHelper.isConnectedToNetwork(this)) /* else */
             new GetItems(db).execute(this);
     }
 
@@ -357,7 +357,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     public void addItemsToList(List list) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             startNewListFragment(list.getId());
-        else if (!online)
+        else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
@@ -384,7 +384,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 @Override
                 public void onClick(View v) { renameList(list, inputListName); }
             });
-        } else if (!online)
+        } else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
@@ -392,7 +392,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     public void removeList(List list) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             new FirebaseListsHelper(this, firebaseDatabase).deleteList(list);
-        else if (!online)
+        else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
@@ -401,7 +401,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             list.setDone(true);
             new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
-        } else if (!online)
+        } else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
@@ -413,7 +413,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             list.setDone(false);
             new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
-        } else if (!online)
+        } else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
@@ -421,6 +421,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     public void addItemToList(Item item) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             new FirebaseItemsHelper(this, firebaseDatabase).createItem(item);
+        else// if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -429,6 +431,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             for (HasForItem hasForItem: hasForItems)
                 if (hasForItem.getListId().equals(this.listId) && hasForItem.getItemId().equals(item.getId()))
                     new FirebaseHasForItemsHelper(this, firebaseDatabase).checkHasForItems(this.listId, item.getId(), !hasForItem.getChecked());
+        else// if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -437,6 +441,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             for (HasForItem hasForItem: hasForItems)
                 if (hasForItem.getListId().equals(this.listId) && hasForItem.getItemId().equals(item.getId()))
                     new FirebaseHasForItemsHelper(this, firebaseDatabase).deleteHasForItems(this.listId, item.getId(), hasForItem.getChecked());
+        else// if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     private void startNewListFragment(String listId) {
@@ -511,20 +517,23 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     private void renameList(List list, TextInputLayout inputListName) {
-        String txtListName = "";
-        if (inputListName.getEditText() != null)
-            txtListName = inputListName.getEditText().getText().toString().trim();
-        if (txtListName.isEmpty())
-            inputListName.setError("This field cannot be empty");
-        else {
-            for (List userList: lists)
-                if (txtListName.equals(userList.getName())) {
-                    inputListName.setError("This name is already taken by one of your lists");
-                    return;
-                }
-            list.setName(txtListName);
-            new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
-            alertDialog.cancel();
-        }
+        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+            String txtListName = "";
+            if (inputListName.getEditText() != null)
+                txtListName = inputListName.getEditText().getText().toString().trim();
+            if (txtListName.isEmpty())
+                inputListName.setError("This field cannot be empty");
+            else {
+                for (List userList : lists)
+                    if (txtListName.equals(userList.getName())) {
+                        inputListName.setError("This name is already taken by one of your lists");
+                        return;
+                    }
+                list.setName(txtListName);
+                new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
+                alertDialog.cancel();
+            }
+        } else //if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 }
