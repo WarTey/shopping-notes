@@ -38,7 +38,8 @@ public class NewListFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_new_list, container, false);
         items = new ArrayList<>();
-        requestQueue = Volley.newRequestQueue(getActivity());
+        if (getActivity() != null)
+            requestQueue = Volley.newRequestQueue(getActivity());
         progressBar = view.findViewById(R.id.progressBarNewList);
         progressBar.setVisibility(View.VISIBLE);
         showItems(view);

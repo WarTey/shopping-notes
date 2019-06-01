@@ -17,7 +17,6 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -31,8 +30,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.database.AppDatabase;
 import com.guillaume.shoppingnotes.database.async.hasforitems.DeleteHasForItems;
+import com.guillaume.shoppingnotes.database.async.hasforitems.DeleteHasForItemsFromList;
 import com.guillaume.shoppingnotes.database.async.hasforitems.GetHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.InsertHasForItems;
+import com.guillaume.shoppingnotes.database.async.hasforitems.UpdateHasForItem;
 import com.guillaume.shoppingnotes.database.async.interfaces.HasForItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ListsInterface;
@@ -59,6 +60,7 @@ import com.guillaume.shoppingnotes.shop.recycler.items.ItemAdapterInterface;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapter;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapterInterface;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
+import com.muddzdev.styleabletoast.StyleableToast;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -71,9 +73,12 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     private java.util.List<Item> items;
     private TextView txtEmail, txtName;
     private java.util.List<List> lists;
+    private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private AlertDialog alertDialog;
     private boolean online, history;
+    private ItemAdapter itemAdapter;
+    private ListAdapter listAdapter;
     private DrawerLayout drawer;
     private Toolbar toolbar;
     private AppDatabase db;
@@ -141,10 +146,12 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         switch (menuItem.getItemId()) {
             case R.id.nav_my_lists:
                 toolbar.setTitle(R.string.my_lists);
+                listAdapter = null;
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListsFragment()).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_history:
                 toolbar.setTitle(R.string.my_history);
+                listAdapter = null;
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HistoryFragment()).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_groups:
@@ -156,7 +163,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             case R.id.nav_sign_out:
                 setResult(Activity.RESULT_OK);
                 finish();
-                Toast.makeText(this, "Disconnected", Toast.LENGTH_SHORT).show();
+                StyleableToast.makeText(this, "Disconnected", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
                 break;
         }
         drawer.closeDrawer(GravityCompat.START);
@@ -182,6 +189,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseHasForItemsResponse(java.util.List<HasForItem> hasForItems) {
         this.hasForItems = hasForItems;
+        if (items != null)
+            initRecyclerViewItems();
         initRecyclerViewLists();
         progressBar.setVisibility(View.GONE);
     }
@@ -189,21 +198,21 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseListCreated(List list) {
         new InsertList(db, list, user.getEmail()).execute();
-        Toast.makeText(this, "List " + list.getName() + " created", Toast.LENGTH_SHORT).show();
+        StyleableToast.makeText(this, "List " + list.getName() + " created", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
         alertDialog.cancel();
         startNewListFragment(list.getId());
     }
 
     @Override
     public void firebaseListUpdated(List list) {
-        Toast.makeText(this, "List " + list.getName() + " updated", Toast.LENGTH_SHORT).show();
+        StyleableToast.makeText(this, "List " + list.getName() + " updated", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
         new UpdateList(db, list, user.getEmail()).execute();
     }
 
     @Override
     public void firebaseListDeleted(List list) {
-        Toast.makeText(this, "List " + list.getName() + " deleted", Toast.LENGTH_SHORT).show();
-        new DeleteHasForItems(user.getEmail(), list, db).execute(this);
+        StyleableToast.makeText(this, "List " + list.getName() + " deleted", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
+        new DeleteHasForItemsFromList(user.getEmail(), list, db).execute(this);
     }
 
     @Override
@@ -214,7 +223,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void firebaseHasForItemsCreated(String itemId) {
-        Toast.makeText(this, "Item added to your list", Toast.LENGTH_SHORT).show();
+        StyleableToast.makeText(this, "Item added to your list", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
     }
 
     @Override
@@ -222,6 +231,18 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         this.items = items;
         initRecyclerViewItems();
         progressBar.setVisibility(View.GONE);
+    }
+
+    @Override
+    public void firebaseHasForItemsChecked(HasForItem hasForItem) {
+        StyleableToast.makeText(this, "Item checked", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
+        new UpdateHasForItem(db, user.getEmail(), hasForItem).execute();
+    }
+
+    @Override
+    public void firebaseHasForItemsDeleted(HasForItem hasForItem) {
+        StyleableToast.makeText(this, "Item deleted", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
+        new DeleteHasForItems(db, user.getEmail(), hasForItem).execute();
     }
 
     @Override
@@ -243,7 +264,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void hasForItemsResponse(java.util.List<HasForItem> hasForItems) {
         this.hasForItems = hasForItems;
-        //Log.e("debug", "test");
+        if (items != null)
+            initRecyclerViewItems();
         initRecyclerViewLists();
         progressBar.setVisibility(View.GONE);
     }
@@ -257,7 +279,9 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void newListFromMyListsFragment(TextInputLayout inputListName, AlertDialog alertDialog) {
-        String txtListName = inputListName.getEditText().getText().toString().trim();
+        String txtListName = "";
+        if (inputListName.getEditText() != null)
+            txtListName = inputListName.getEditText().getText().toString().trim();
         this.alertDialog = alertDialog;
 
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
@@ -268,7 +292,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 }
             new FirebaseListsHelper(this, firebaseDatabase).createList(txtListName);
         } else if (!online)
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -295,9 +319,10 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void showItemsFromNewListFragment(View view, java.util.List<Item> items) {
-        RecyclerView recyclerView = findViewById(R.id.newListRecyclerView);
+        recyclerView = findViewById(R.id.newListRecyclerView);
         if (recyclerView != null) {
-            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
+            recyclerView.setHasFixedSize(true);
+            recyclerView.addItemDecoration(new DividerItemDecoration(this, 0));
             recyclerView.setLayoutManager(new LinearLayoutManager(this));
             recyclerView.setAdapter(new ItemAdapter(items, ShopActivity.this, true, null, null));
         }
@@ -319,7 +344,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             startNewListFragment(list.getId());
         else if (!online)
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -331,12 +356,14 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             final TextInputLayout inputListName = view.findViewById(R.id.inputListName);
             Button btnCreate = view.findViewById(R.id.btnCreateList);
 
-            inputListName.getEditText().setText(list.getName());
+            if (inputListName.getEditText() != null)
+                inputListName.getEditText().setText(list.getName());
             btnCreate.setText(R.string.rename);
             builder.setCancelable(true);
             builder.setView(view);
             alertDialog = builder.create();
-            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+            if (alertDialog.getWindow() != null)
+                alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             alertDialog.show();
 
             view.findViewById(R.id.btnCreateList).setOnClickListener(new View.OnClickListener() {
@@ -344,7 +371,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 public void onClick(View v) { renameList(list, inputListName); }
             });
         } else if (!online)
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -352,7 +379,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             new FirebaseListsHelper(this, firebaseDatabase).deleteList(list);
         else if (!online)
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -361,7 +388,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             list.setDone(true);
             new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
         } else if (!online)
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -373,7 +400,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             list.setDone(false);
             new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
         } else if (!online)
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -386,13 +413,16 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     public void checkItem(Item item, ImageView checked) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             for (HasForItem hasForItem: hasForItems)
-                if (hasForItem.getListId().equals(this.listId) && hasForItem.getItemId().equals(item.getId())) {
-                    if (!hasForItem.getChecked())
-                        checked.setImageResource(R.drawable.check_mark);
-                    else
-                        checked.setImageResource(android.R.color.transparent);
+                if (hasForItem.getListId().equals(this.listId) && hasForItem.getItemId().equals(item.getId()))
                     new FirebaseHasForItemsHelper(this, firebaseDatabase).checkHasForItems(this.listId, item.getId(), !hasForItem.getChecked());
-                }
+    }
+
+    @Override
+    public void removeItem(Item item) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            for (HasForItem hasForItem: hasForItems)
+                if (hasForItem.getListId().equals(this.listId) && hasForItem.getItemId().equals(item.getId()))
+                    new FirebaseHasForItemsHelper(this, firebaseDatabase).deleteHasForItems(this.listId, item.getId(), hasForItem.getChecked());
     }
 
     private void startNewListFragment(String listId) {
@@ -405,36 +435,43 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     private void startListFragment(List list) {
         this.listId = list.getId();
+        itemAdapter = null;
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListFragment()).addToBackStack(null).commit();
     }
 
     private void initRecyclerViewLists() {
-        RecyclerView recyclerView = findViewById(R.id.recyclerView);
-        if (recyclerView != null) {
-            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            recyclerView.setAdapter(new ListAdapter(lists, this, hasForItems, history));
-        }
+        if (listAdapter == null) {
+            listAdapter = new ListAdapter(lists, this, hasForItems, history);
+            recyclerView = findViewById(R.id.recyclerView);
+            if (recyclerView != null) {
+                recyclerView.setHasFixedSize(true);
+                recyclerView.addItemDecoration(new DividerItemDecoration(this, 0));
+                recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                recyclerView.setAdapter(listAdapter);
+            }
+        } else
+            listAdapter.updateData(lists, hasForItems);
     }
 
     private void initRecyclerViewItems() {
         java.util.List<Item> listItems = new ArrayList<>();
-        for (Item item: items) {
-            for (HasForItem hasForItem: hasForItems) {
-                //for (int i = 0; i < hasForItem.getNumber())
-                if (hasForItem.getItemId().equals(item.getId()) && hasForItem.getListId().equals(listId)) {
+        for (Item item: items)
+            for (HasForItem hasForItem: hasForItems)
+                if (hasForItem.getItemId().equals(item.getId()) && hasForItem.getListId().equals(listId))
                     listItems.add(item);
-                }
-            }
-        }
 
-        RecyclerView recyclerView = findViewById(R.id.newListRecyclerView);
-        if (recyclerView != null) {
-            setMyListToolbar(listItems);
-            recyclerView.addItemDecoration(new DividerItemDecoration(getApplicationContext(), DividerItemDecoration.VERTICAL));
-            recyclerView.setLayoutManager(new LinearLayoutManager(this));
-            recyclerView.setAdapter(new ItemAdapter(listItems, ShopActivity.this, false, hasForItems, listId));
-        }
+        if (itemAdapter == null) {
+            itemAdapter = new ItemAdapter(listItems, ShopActivity.this, false, hasForItems, listId);
+            recyclerView = findViewById(R.id.newListRecyclerView);
+            if (recyclerView != null) {
+                setMyListToolbar(listItems);
+                recyclerView.setHasFixedSize(true);
+                recyclerView.addItemDecoration(new DividerItemDecoration(this, 0));
+                recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                recyclerView.setAdapter(itemAdapter);
+            }
+        } else
+            itemAdapter.updateData(listItems, hasForItems);
     }
 
     private void setMyListToolbar(java.util.List<Item> items) {
@@ -452,7 +489,9 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     private void renameList(List list, TextInputLayout inputListName) {
-        String txtListName = inputListName.getEditText().getText().toString().trim();
+        String txtListName = "";
+        if (inputListName.getEditText() != null)
+            txtListName = inputListName.getEditText().getText().toString().trim();
         if (txtListName.isEmpty())
             inputListName.setError("This field cannot be empty");
         else {

@@ -9,4 +9,8 @@ public interface FirebaseHasForItemsInterface {
     void firebaseHasForItemsResponse(List<HasForItem> hasForItems);
 
     void firebaseHasForItemsCreated(String itemId);
+
+    void firebaseHasForItemsChecked(HasForItem hasForItem);
+
+    void firebaseHasForItemsDeleted(HasForItem hasForItem);
 }

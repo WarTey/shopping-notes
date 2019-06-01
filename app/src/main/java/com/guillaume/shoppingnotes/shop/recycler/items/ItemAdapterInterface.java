@@ -9,4 +9,6 @@ public interface ItemAdapterInterface {
     void addItemToList(Item item);
 
     void checkItem(Item item, ImageView checked);
+
+    void removeItem(Item item);
 }

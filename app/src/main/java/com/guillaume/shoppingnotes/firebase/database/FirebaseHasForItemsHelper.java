@@ -48,7 +48,19 @@ public class FirebaseHasForItemsHelper {
             });
     }
 
-    public void checkHasForItems(String listId, final String itemId, boolean checked) {
-        databaseReference.child(listId + itemId).setValue(new HasForItem(checked, listId, itemId));
+    public void checkHasForItems(final String listId, final String itemId, final boolean checked) {
+        databaseReference.child(listId + itemId).setValue(new HasForItem(checked, listId, itemId))
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) { mListener.firebaseHasForItemsChecked(new HasForItem(checked, listId, itemId)); }
+            });
+    }
+
+    public void deleteHasForItems(final String listId, final String itemId, final boolean checked) {
+        databaseReference.child(listId + itemId).setValue(null)
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) { mListener.firebaseHasForItemsDeleted(new HasForItem(checked, listId, itemId)); }
+            });
     }
 }

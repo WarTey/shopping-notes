@@ -47,4 +47,12 @@ public class ListAdapter extends RecyclerView.Adapter<ListViewHolder> {
 
     @Override
     public int getItemCount() { return lists.size(); }
+
+    public void updateData(java.util.List<List> lists, java.util.List<HasForItem> listItems) {
+        this.lists.clear();
+        this.listItems.clear();
+        this.lists.addAll(lists);
+        this.listItems.addAll(listItems);
+        notifyDataSetChanged();
+    }
 }

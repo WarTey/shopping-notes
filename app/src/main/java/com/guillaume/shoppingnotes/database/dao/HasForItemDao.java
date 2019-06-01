@@ -1,8 +1,10 @@
 package com.guillaume.shoppingnotes.database.dao;
 
 import android.arch.persistence.room.Dao;
+import android.arch.persistence.room.Delete;
 import android.arch.persistence.room.Insert;
 import android.arch.persistence.room.Query;
+import android.arch.persistence.room.Update;
 
 import com.guillaume.shoppingnotes.model.HasForItem;
 
@@ -22,4 +24,10 @@ public interface HasForItemDao {
 
     @Insert
     void insertHasForItem(HasForItem... hasForItem);
+
+    @Update
+    void updateHasForItem(HasForItem... hasForItems);
+
+    @Delete
+    void deleteHasForItem(HasForItem... hasForItems);
 }

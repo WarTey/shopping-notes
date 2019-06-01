@@ -22,6 +22,7 @@ import com.guillaume.shoppingnotes.model.User;
 import com.guillaume.shoppingnotes.shop.ShopActivity;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
+import com.muddzdev.styleabletoast.StyleableToast;
 
 public class MainActivity extends AppCompatActivity implements LoginFragment.OnFragmentInteractionListener, RegisterFragment.OnFragmentInteractionListener, UsersInterface, FirebaseRegisterInterface, FirebaseLoginInterface {
 
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         if (ConnectivityHelper.isConnectedToNetwork(this))
             getSupportFragmentManager().beginTransaction().replace(R.id.login, new RegisterFragment()).addToBackStack(null).commit();
         else
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
 
@@ -92,8 +93,10 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         intent.putExtra("user", user);
         intent.putExtra("online", online);
         startActivityForResult(intent, 1);
-        if (online) Toast.makeText(this, "Connection successful", Toast.LENGTH_SHORT).show();
-        else Toast.makeText(this, "Connection successful (Offline)", Toast.LENGTH_SHORT).show();
+        if (online)
+            StyleableToast.makeText(this, "Connection successful", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
+        else
+            StyleableToast.makeText(this, "Connection successful (Offline)", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -107,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
             auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
                     .addOnCompleteListener(new FirebaseRegister(this, user));
         } else
-            Toast.makeText(this, "No internet connection", Toast.LENGTH_SHORT).show();
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -126,6 +129,6 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     public void userCreated() {
         progressBar.setVisibility(View.GONE);
         getSupportFragmentManager().beginTransaction().replace(R.id.login, new LoginFragment()).addToBackStack(null).commit();
-        Toast.makeText(this, "Registration successful", Toast.LENGTH_SHORT).show();
+        StyleableToast.makeText(this, "Registration successful", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
     }
 }

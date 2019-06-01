@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
+import com.muddzdev.styleabletoast.StyleableToast;
 
 public class MyListsFragment extends Fragment {
 
@@ -31,8 +32,12 @@ public class MyListsFragment extends Fragment {
         view.findViewById(R.id.floatButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ConnectivityHelper.isConnectedToNetwork(getActivity())) showDialog();
-                else Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
+                if (getActivity() != null) {
+                    if (ConnectivityHelper.isConnectedToNetwork(getActivity()))
+                        showDialog();
+                    else
+                        StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+                }
             }
         });
         return view;
@@ -69,7 +74,8 @@ public class MyListsFragment extends Fragment {
                     String txtListName = inputListName.getEditText().getText().toString().trim();
                     if (txtListName.isEmpty()) inputListName.setError("This field cannot be empty");
                     else mListener.newListFromMyListsFragment(inputListName, alertDialog);
-                } else Toast.makeText(getActivity(), "No internet connection", Toast.LENGTH_SHORT).show();
+                } else
+                    StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
             }
         });
     }

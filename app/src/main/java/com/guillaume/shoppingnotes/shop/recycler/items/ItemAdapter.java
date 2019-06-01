@@ -48,4 +48,12 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemViewHolder> {
     public int getItemCount() {
         return items.size();
     }
+
+    public void updateData(List<Item> items, List<HasForItem> hasForItems) {
+        this.items.clear();
+        this.hasForItems.clear();
+        this.items.addAll(items);
+        this.hasForItems.addAll(hasForItems);
+        notifyDataSetChanged();
+    }
 }

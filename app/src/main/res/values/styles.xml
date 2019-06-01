@@ -14,4 +14,16 @@
         <item name="colorControlActivated">@color/nightAccent</item>
     </style>
 
+    <style name="CustomToastCheck">
+        <item name="stColorBackground">@color/colorPrimaryDark</item>
+        <item name="stIconStart">@drawable/ic_check_white_24dp</item>
+        <item name="stTextColor">#FFFFFF</item>
+    </style>
+
+    <style name="CustomToastConnection">
+        <item name="stColorBackground">@color/colorPrimaryDark</item>
+        <item name="stIconStart">@drawable/ic_signal_wifi_off_white_24dp</item>
+        <item name="stTextColor">#FFFFFF</item>
+    </style>
+
 </resources>
