@@ -32,13 +32,13 @@ public class LoginFragment extends Fragment {
         view.findViewById(R.id.btnSignUp).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mListener.registerFromLoginFragment();
+            mListener.registerFromLoginFragment();
             }
         });
         view.findViewById(R.id.btnSignIn).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                loginClicked();
+            loginClicked();
             }
         });
         return view;

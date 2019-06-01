@@ -26,4 +26,10 @@
         <item name="stTextColor">#FFFFFF</item>
     </style>
 
+    <style name="CustomToastInvalid">
+        <item name="stColorBackground">@color/colorPrimaryDark</item>
+        <item name="stIconStart">@drawable/ic_block_white_24dp</item>
+        <item name="stTextColor">#FFFFFF</item>
+    </style>
+
 </resources>

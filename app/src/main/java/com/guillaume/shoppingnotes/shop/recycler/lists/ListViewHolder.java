@@ -71,6 +71,7 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
     @SuppressLint("SetTextI18n")
     public void display(List list, int nbItems, int nbChecked) {
         this.list = list;
+        image.setImageResource(R.drawable.checkbox_unchecked);
         if (nbChecked == nbItems && nbItems != 0)
             image.setImageResource(R.drawable.checkbox_checked);
         name.setText(list.getName().length() > 15 ? list.getName().substring(0, 15) + "..." : list.getName());

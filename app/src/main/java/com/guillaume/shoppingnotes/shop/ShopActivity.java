@@ -68,6 +68,7 @@ import java.util.ArrayList;
 
 public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
 
+    private boolean online, history, json, itemsMenu;
     private java.util.List<HasForItem> hasForItems;
     private FirebaseDatabase firebaseDatabase;
     private java.util.List<Item> items;
@@ -76,7 +77,6 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private AlertDialog alertDialog;
-    private boolean online, history;
     private ItemAdapter itemAdapter;
     private ListAdapter listAdapter;
     private DrawerLayout drawer;
@@ -94,6 +94,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         user = getIntent().getParcelableExtra("user");
         online = getIntent().getBooleanExtra("online", false);
         db = AppDatabase.getInstance(this);
+        itemsMenu = false;
 
         initToolbar();
         initNavigationView();
@@ -143,15 +144,16 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        listAdapter = null;
+        itemAdapter = null;
+        itemsMenu = false;
         switch (menuItem.getItemId()) {
             case R.id.nav_my_lists:
                 toolbar.setTitle(R.string.my_lists);
-                listAdapter = null;
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListsFragment()).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_history:
                 toolbar.setTitle(R.string.my_history);
-                listAdapter = null;
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HistoryFragment()).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_groups:
@@ -189,9 +191,10 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseHasForItemsResponse(java.util.List<HasForItem> hasForItems) {
         this.hasForItems = hasForItems;
-        if (items != null)
+        if (items != null && !json && itemsMenu)
             initRecyclerViewItems();
-        initRecyclerViewLists();
+        if (!itemsMenu)
+            initRecyclerViewLists();
         progressBar.setVisibility(View.GONE);
     }
 
@@ -217,8 +220,13 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void firebaseItemCreated(Item item) {
-        new FirebaseHasForItemsHelper(this, firebaseDatabase).createHasForItems(listId, item.getId());
         new InsertItems(user.getEmail(), db, item).execute(this);
+        for (HasForItem hasForItem : hasForItems)
+            if (hasForItem.getListId().equals(listId) && hasForItem.getItemId().equals(item.getId())) {
+                StyleableToast.makeText(this, "Item already in your list", Toast.LENGTH_LONG, R.style.CustomToastInvalid).show();
+                return;
+            }
+        new FirebaseHasForItemsHelper(this, firebaseDatabase).createHasForItems(listId, item.getId());
     }
 
     @Override
@@ -229,7 +237,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseItemsResponse(java.util.List<Item> items) {
         this.items = items;
-        initRecyclerViewItems();
+        if (!json)
+            initRecyclerViewItems();
         progressBar.setVisibility(View.GONE);
     }
 
@@ -247,6 +256,9 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void itemCreated(Item item) {
+        for (HasForItem hasForItem : hasForItems)
+            if (hasForItem.getListId().equals(listId) && hasForItem.getItemId().equals(item.getId()))
+                return;
         new InsertHasForItems(user.getEmail(), listId, item.getId(), db).execute();
     }
 
@@ -264,16 +276,18 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void hasForItemsResponse(java.util.List<HasForItem> hasForItems) {
         this.hasForItems = hasForItems;
-        if (items != null)
+        if (items != null && !json && itemsMenu)
             initRecyclerViewItems();
-        initRecyclerViewLists();
+        if (!itemsMenu)
+            initRecyclerViewLists();
         progressBar.setVisibility(View.GONE);
     }
 
     @Override
     public void itemsResponse(java.util.List<Item> items) {
         this.items = items;
-        initRecyclerViewItems();
+        if (!json)
+            initRecyclerViewItems();
         progressBar.setVisibility(View.GONE);
     }
 
@@ -427,15 +441,20 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     private void startNewListFragment(String listId) {
         this.listId = listId;
+        json = true;
+        //itemAdapter = null;
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new NewListFragment()).addToBackStack(null).commit();
+
         for (List list: lists)
             if (list.getId().equals(listId))
                 toolbar.setTitle(list.getName());
     }
 
     private void startListFragment(List list) {
-        this.listId = list.getId();
-        itemAdapter = null;
+        listId = list.getId();
+        json = false;
+        itemsMenu = true;
+        //itemAdapter = null;
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListFragment()).addToBackStack(null).commit();
     }
 
@@ -470,22 +489,25 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 recyclerView.setLayoutManager(new LinearLayoutManager(this));
                 recyclerView.setAdapter(itemAdapter);
             }
-        } else
+        } else {
+            setMyListToolbar(listItems);
             itemAdapter.updateData(listItems, hasForItems);
+        }
     }
 
     private void setMyListToolbar(java.util.List<Item> items) {
-        double price = 0;
+        double price = 0.0;
         for (Item item: items)
             price += item.getPrice();
 
-        for (List list: lists)
+        for (List list: lists) {
             if (list.getId().equals(listId)) {
                 if (list.getName().length() > 15)
                     toolbar.setTitle(list.getName().substring(0, 15) + "... - " + new BigDecimal(price).setScale(2, RoundingMode.HALF_UP).doubleValue() + "€");
                 else
                     toolbar.setTitle(list.getName() + " - " + new BigDecimal(price).setScale(2, RoundingMode.HALF_UP).doubleValue() + "€");
             }
+        }
     }
 
     private void renameList(List list, TextInputLayout inputListName) {

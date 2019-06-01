@@ -32,12 +32,12 @@ public class MyListsFragment extends Fragment {
         view.findViewById(R.id.floatButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (getActivity() != null) {
-                    if (ConnectivityHelper.isConnectedToNetwork(getActivity()))
-                        showDialog();
-                    else
-                        StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
-                }
+            if (getActivity() != null) {
+                if (ConnectivityHelper.isConnectedToNetwork(getActivity()))
+                    showDialog();
+                else
+                    StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+            }
             }
         });
         return view;
@@ -69,13 +69,15 @@ public class MyListsFragment extends Fragment {
         view.findViewById(R.id.btnCreateList).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ConnectivityHelper.isConnectedToNetwork(getActivity())) {
-                    TextInputLayout inputListName = view.findViewById(R.id.inputListName);
-                    String txtListName = inputListName.getEditText().getText().toString().trim();
-                    if (txtListName.isEmpty()) inputListName.setError("This field cannot be empty");
-                    else mListener.newListFromMyListsFragment(inputListName, alertDialog);
-                } else
-                    StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+            if (ConnectivityHelper.isConnectedToNetwork(getActivity())) {
+                TextInputLayout inputListName = view.findViewById(R.id.inputListName);
+                String txtListName = inputListName.getEditText().getText().toString().trim();
+                if (txtListName.isEmpty())
+                    inputListName.setError("This field cannot be empty");
+                else
+                    mListener.newListFromMyListsFragment(inputListName, alertDialog);
+            } else
+                StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
             }
         });
     }
