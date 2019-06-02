@@ -19,7 +19,7 @@ import com.muddzdev.styleabletoast.StyleableToast;
 
 public class AccountFragment extends Fragment {
 
-    TextInputLayout inputLastname, inputFirstname;
+    TextInputLayout inputLastname, inputFirstname, inputEmail, inputPassword, inputPasswordRepeat;
     private OnFragmentInteractionListener mListener;
     private User user;
 
@@ -28,6 +28,9 @@ public class AccountFragment extends Fragment {
     private void initializeInput(View view) {
         inputLastname = view.findViewById(R.id.inputLastname);
         inputFirstname = view.findViewById(R.id.inputFirstname);
+        inputEmail = view.findViewById(R.id.inputEmail);
+        inputPassword = view.findViewById(R.id.inputPassword);
+        inputPasswordRepeat = view.findViewById(R.id.inputPasswordRepeat);
     }
 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -38,6 +41,9 @@ public class AccountFragment extends Fragment {
         initializeInput(view);
         inputLastname.getEditText().setText(user.getLastname());
         inputFirstname.getEditText().setText(user.getFirstname());
+        inputEmail.getEditText().setText(user.getEmail());
+        inputPassword.getEditText().setText(user.getPassword());
+        inputPasswordRepeat.getEditText().setText(user.getPassword());
 
         view.findViewById(R.id.btnEdit).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -64,31 +70,43 @@ public class AccountFragment extends Fragment {
     }
 
     private void editClicked() {
-        String txtLastname = inputLastname.getEditText().getText().toString().trim();
-        String txtFirstname = inputFirstname.getEditText().getText().toString().trim();
+        String txtLastname = user.getLastname();
+        String txtFirstname = user.getFirstname();
+        String txtEmail = user.getEmail();
+        String txtPassword = user.getPassword();
+        String txtPasswordRepeat = user.getPassword();
+        if (inputLastname.getEditText() != null && inputFirstname.getEditText() != null && inputEmail.getEditText() != null && inputPassword.getEditText() != null && inputPasswordRepeat.getEditText() != null) {
+            txtLastname = inputLastname.getEditText().getText().toString().trim();
+            txtFirstname = inputFirstname.getEditText().getText().toString().trim();
+            txtEmail = inputEmail.getEditText().getText().toString().trim();
+            txtPassword = inputPassword.getEditText().getText().toString().trim();
+            txtPasswordRepeat = inputPasswordRepeat.getEditText().getText().toString().trim();
+        }
 
-        for (TextInputLayout field : new TextInputLayout[]{inputLastname, inputFirstname}) {
+        for (TextInputLayout field : new TextInputLayout[]{inputLastname, inputFirstname, inputEmail, inputPassword, inputPasswordRepeat}) {
             field.setError(null);
             field.setErrorEnabled(false);
         }
 
-        if (getActivity() != null && txtFirstname.equals(user.getFirstname()) && txtLastname.equals(user.getLastname()))
+        if (getActivity() != null && txtFirstname.equals(user.getFirstname()) && txtLastname.equals(user.getLastname()) && txtEmail.equals(user.getEmail()) && txtPassword.equals(user.getPassword()) && txtPasswordRepeat.equals(txtPassword))
             StyleableToast.makeText(getActivity(), "Please edit at least one field", Toast.LENGTH_LONG, R.style.CustomToastInvalid).show();
         else {
-            if (!txtFirstname.isEmpty() && !txtLastname.isEmpty()) {
+            if (CredentialsVerification.registerVerification(inputLastname, inputFirstname, inputEmail, inputPassword, inputPasswordRepeat))
+                mListener.editFromAccountFragment(new User(user.getId(), txtLastname, txtFirstname, txtEmail, txtPassword), inputEmail);
+            /*if (!txtFirstname.isEmpty() && !txtLastname.isEmpty()) {
                 user.setFirstname(txtFirstname);
                 user.setLastname(txtLastname);
                 mListener.editFromAccountFragment(new User(user.getId(), txtLastname, txtFirstname, user.getEmail(), user.getPassword()));
             } else
                 for (TextInputLayout field : new TextInputLayout[]{inputFirstname, inputLastname})
-                    if (field.getEditText().getText().toString().trim().isEmpty()) {
+                    if (field.getEditText() != null && field.getEditText().getText().toString().trim().isEmpty()) {
                         field.setError("This field cannot be empty");
                         field.requestFocus();
-                    }
+                    }*/
         }
     }
 
     public interface OnFragmentInteractionListener {
-        void editFromAccountFragment(User user);
+        void editFromAccountFragment(User user, TextInputLayout inputEmail);
     }
 }

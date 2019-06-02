@@ -15,7 +15,9 @@ public class FirebaseLogin implements OnCompleteListener<AuthResult> {
 
     @Override
     public void onComplete(@NonNull Task<AuthResult> task) {
-        if (task.isSuccessful()) mListener.firebaseLogged();
-        else mListener.firebaseNonLogged();
+        if (task.isSuccessful())
+            mListener.firebaseLogged();
+        else
+            mListener.firebaseNonLogged();
     }
 }

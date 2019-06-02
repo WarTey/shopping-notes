@@ -27,12 +27,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.database.AppDatabase;
@@ -50,10 +45,10 @@ import com.guillaume.shoppingnotes.database.async.lists.DeleteList;
 import com.guillaume.shoppingnotes.database.async.lists.GetLists;
 import com.guillaume.shoppingnotes.database.async.lists.InsertList;
 import com.guillaume.shoppingnotes.database.async.lists.UpdateList;
-import com.guillaume.shoppingnotes.database.async.users.InsertUser;
 import com.guillaume.shoppingnotes.database.async.users.UpdateUser;
-import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegister;
-import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseRegisterInterface;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseEditEmail;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseEditPassword;
+import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseEditInterface;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseHasForItemsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseItemsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseListsHelper;
@@ -78,11 +73,12 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
-public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
+public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface, FirebaseEditInterface {
 
     private boolean online, history, json, itemsMenu;
     private java.util.List<HasForItem> hasForItems;
     private FirebaseDatabase firebaseDatabase;
+    private TextInputLayout inputEmail;
     private java.util.List<Item> items;
     private TextView txtEmail, txtName;
     private java.util.List<List> lists;
@@ -91,10 +87,11 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     private AlertDialog alertDialog;
     private ItemAdapter itemAdapter;
     private ListAdapter listAdapter;
+    private String listId, oldEmail;
     private DrawerLayout drawer;
+    private FirebaseAuth auth;
     private Toolbar toolbar;
     private AppDatabase db;
-    private String listId;
     private User user;
 
     @Override
@@ -102,6 +99,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shop);
 
+        auth = FirebaseAuth.getInstance();
         firebaseDatabase = FirebaseDatabase.getInstance();
         user = getIntent().getParcelableExtra("user");
         online = getIntent().getBooleanExtra("online", false);
@@ -273,9 +271,30 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void firebaseUserUpdated(User user) {
-        new UpdateUser(db, user, user.getEmail()).execute();
+        new UpdateUser(db, user, oldEmail).execute();
         progressBar.setVisibility(View.GONE);
         StyleableToast.makeText(this, "Account edited", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
+    }
+
+    @Override
+    public void firebaseEmailEdited(User user) {
+        if (auth.getCurrentUser() != null)
+            auth.getCurrentUser().updatePassword(user.getPassword()).addOnCompleteListener(new FirebaseEditPassword(this, user));
+    }
+
+    @Override
+    public void firebaseEmailNonEdited() {
+        CredentialsVerification.registerFailed(inputEmail);
+    }
+
+    @Override
+    public void firebasePasswordEdited(User user) {
+        new FirebaseUsersHelper(this, firebaseDatabase).updateUser(user);
+    }
+
+    @Override
+    public void firebasePasswordNonEdited() {
+        StyleableToast.makeText(this, "Error while updating your password", Toast.LENGTH_LONG, R.style.CustomToastInvalid).show();
     }
 
     @Override
@@ -470,11 +489,15 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     @Override
-    public void editFromAccountFragment(User user) {
+    public void editFromAccountFragment(User user, TextInputLayout inputEmail) {
+        this.inputEmail = inputEmail;
+        oldEmail = this.user.getEmail();
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             progressBar = findViewById(R.id.progressBarEdit);
             progressBar.setVisibility(View.VISIBLE);
-            new FirebaseUsersHelper(this, firebaseDatabase).updateUser(user);
+
+            if (auth.getCurrentUser() != null)
+                auth.getCurrentUser().updateEmail(user.getEmail()).addOnCompleteListener(new FirebaseEditEmail(this, user));
         } else
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
