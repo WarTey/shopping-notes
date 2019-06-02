@@ -10,11 +10,8 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 @Entity(tableName = "lists",
-        indices = {@Index(value = "user_id"), @Index(value = "group_id")},
-        foreignKeys = {
-            @ForeignKey(entity = User.class, parentColumns = "id", childColumns = "user_id"),
-            @ForeignKey(entity = Group.class, parentColumns = "id", childColumns = "group_id")
-        })
+        indices = @Index(value = "user_id"),
+        foreignKeys = @ForeignKey(entity = User.class, parentColumns = "id", childColumns = "user_id"))
 public class List {
 
     @PrimaryKey
@@ -30,19 +27,14 @@ public class List {
     @Nullable
     private String userId;
 
-    @ColumnInfo(name = "group_id")
-    @Nullable
-    private String groupId;
-
     public List() { }
 
     @Ignore
-    public List(@NonNull String id, String name, boolean done, @Nullable String userId, @Nullable String groupId) {
+    public List(@NonNull String id, String name, boolean done, @Nullable String userId) {
         this.id = id;
         this.name = name;
         this.done = done;
         this.userId = userId;
-        this.groupId = groupId;
     }
 
     @NonNull
@@ -62,9 +54,4 @@ public class List {
     public String getUserId() { return userId; }
 
     public void setUserId(@Nullable String userId) { this.userId = userId; }
-
-    @Nullable
-    public String getGroupId() { return groupId; }
-
-    public void setGroupId(@Nullable String groupId) { this.groupId = groupId; }
 }

@@ -44,7 +44,7 @@ public class FirebaseListsHelper {
 
     public void createList(String listName) {
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        final List list = new List(listName + userId, listName, false, userId, null);
+        final List list = new List(listName + userId, listName, false, userId);
         databaseReference.child(listName + userId).setValue(list)
             .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
