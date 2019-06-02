@@ -74,13 +74,11 @@ public class AccountFragment extends Fragment {
         String txtFirstname = user.getFirstname();
         String txtEmail = user.getEmail();
         String txtPassword = user.getPassword();
-        String txtPasswordRepeat = user.getPassword();
         if (inputLastname.getEditText() != null && inputFirstname.getEditText() != null && inputEmail.getEditText() != null && inputPassword.getEditText() != null && inputPasswordRepeat.getEditText() != null) {
             txtLastname = inputLastname.getEditText().getText().toString().trim();
             txtFirstname = inputFirstname.getEditText().getText().toString().trim();
             txtEmail = inputEmail.getEditText().getText().toString().trim();
             txtPassword = inputPassword.getEditText().getText().toString().trim();
-            txtPasswordRepeat = inputPasswordRepeat.getEditText().getText().toString().trim();
         }
 
         for (TextInputLayout field : new TextInputLayout[]{inputLastname, inputFirstname, inputEmail, inputPassword, inputPasswordRepeat}) {
@@ -88,22 +86,8 @@ public class AccountFragment extends Fragment {
             field.setErrorEnabled(false);
         }
 
-        if (getActivity() != null && txtFirstname.equals(user.getFirstname()) && txtLastname.equals(user.getLastname()) && txtEmail.equals(user.getEmail()) && txtPassword.equals(user.getPassword()) && txtPasswordRepeat.equals(txtPassword))
-            StyleableToast.makeText(getActivity(), "Please edit at least one field", Toast.LENGTH_LONG, R.style.CustomToastInvalid).show();
-        else {
-            if (CredentialsVerification.registerVerification(inputLastname, inputFirstname, inputEmail, inputPassword, inputPasswordRepeat))
-                mListener.editFromAccountFragment(new User(user.getId(), txtLastname, txtFirstname, txtEmail, txtPassword), inputEmail);
-            /*if (!txtFirstname.isEmpty() && !txtLastname.isEmpty()) {
-                user.setFirstname(txtFirstname);
-                user.setLastname(txtLastname);
-                mListener.editFromAccountFragment(new User(user.getId(), txtLastname, txtFirstname, user.getEmail(), user.getPassword()));
-            } else
-                for (TextInputLayout field : new TextInputLayout[]{inputFirstname, inputLastname})
-                    if (field.getEditText() != null && field.getEditText().getText().toString().trim().isEmpty()) {
-                        field.setError("This field cannot be empty");
-                        field.requestFocus();
-                    }*/
-        }
+        if (CredentialsVerification.registerVerification(inputLastname, inputFirstname, inputEmail, inputPassword, inputPasswordRepeat))
+            mListener.editFromAccountFragment(new User(user.getId(), txtLastname, txtFirstname, txtEmail, txtPassword), inputEmail);
     }
 
     public interface OnFragmentInteractionListener {

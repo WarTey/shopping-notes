@@ -145,10 +145,10 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         txtName = viewNavHeader.findViewById(R.id.txtName);
         txtEmail = viewNavHeader.findViewById(R.id.txtEmail);
         if (user != null) {
-            String firstname = user.getFirstname().length() > 8 ? user.getFirstname().substring(0, 8) + "..." : user.getFirstname();
-            String lastname = user.getLastname().length() > 8 ? user.getLastname().substring(0, 8) + "..." : user.getLastname();
+            String firstname = user.getFirstname().length() > 10 ? user.getFirstname().substring(0, 10) + "..." : user.getFirstname();
+            String lastname = user.getLastname().length() > 10 ? user.getLastname().substring(0, 10) + "..." : user.getLastname();
             txtName.setText(firstname + " " + lastname);
-            txtEmail.setText(user.getEmail().length() > 8 ? user.getEmail().substring(0, 8) + "..." : user.getEmail());
+            txtEmail.setText(user.getEmail().length() > 30 ? user.getEmail().substring(0, 30) + "..." : user.getEmail());
         }
     }
 
@@ -191,10 +191,10 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseUserResponse(User user) {
         this.user = user;
-        String firstname = user.getFirstname().length() > 8 ? user.getFirstname().substring(0, 8) + "..." : user.getFirstname();
-        String lastname = user.getLastname().length() > 8 ? user.getLastname().substring(0, 8) + "..." : user.getLastname();
+        String firstname = user.getFirstname().length() > 10 ? user.getFirstname().substring(0, 10) + "..." : user.getFirstname();
+        String lastname = user.getLastname().length() > 10 ? user.getLastname().substring(0, 10) + "..." : user.getLastname();
         txtName.setText(firstname + " " + lastname);
-        txtEmail.setText(user.getEmail().length() > 8 ? user.getEmail().substring(0, 8) + "..." : user.getEmail());
+        txtEmail.setText(user.getEmail().length() > 30 ? user.getEmail().substring(0, 30) + "..." : user.getEmail());
     }
 
     @Override
@@ -285,6 +285,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseEmailNonEdited() {
         CredentialsVerification.registerFailed(inputEmail);
+        progressBar.setVisibility(View.GONE);
     }
 
     @Override
@@ -294,6 +295,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void firebasePasswordNonEdited() {
+        progressBar.setVisibility(View.GONE);
         StyleableToast.makeText(this, "Error while updating your password", Toast.LENGTH_LONG, R.style.CustomToastInvalid).show();
     }
 
@@ -493,11 +495,15 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         this.inputEmail = inputEmail;
         oldEmail = this.user.getEmail();
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
-            progressBar = findViewById(R.id.progressBarEdit);
-            progressBar.setVisibility(View.VISIBLE);
+            if (user.getFirstname().equals(this.user.getFirstname()) && user.getLastname().equals(this.user.getLastname()) && user.getEmail().equals(this.user.getEmail()) && user.getPassword().equals(this.user.getPassword()))
+                StyleableToast.makeText(this, "Please edit at least one field", Toast.LENGTH_LONG, R.style.CustomToastInvalid).show();
+            else {
+                progressBar = findViewById(R.id.progressBarEdit);
+                progressBar.setVisibility(View.VISIBLE);
 
-            if (auth.getCurrentUser() != null)
-                auth.getCurrentUser().updateEmail(user.getEmail()).addOnCompleteListener(new FirebaseEditEmail(this, user));
+                if (auth.getCurrentUser() != null)
+                    auth.getCurrentUser().updateEmail(user.getEmail()).addOnCompleteListener(new FirebaseEditEmail(this, user));
+            }
         } else
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
