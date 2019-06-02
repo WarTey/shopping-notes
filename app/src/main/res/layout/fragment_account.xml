@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context=".shop.AccountFragment"
+    android:orientation="vertical"
+    android:gravity="center">
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/inputLastname"
+        app:errorTextAppearance="@style/ErrorText"
+        app:hintEnabled="false"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/txtLastname"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:drawableStart="@drawable/ic_person_outline_grey_24dp"
+            android:drawableLeft="@drawable/ic_person_outline_grey_24dp"
+            android:drawablePadding="10dp"
+            android:hint="@string/lastname"
+            android:theme="@style/EditText"
+            android:importantForAutofill="no"
+            android:inputType="textPersonName"
+            tools:ignore="UnusedAttribute" />
+    </android.support.design.widget.TextInputLayout>
+
+    <android.support.design.widget.TextInputLayout
+        android:id="@+id/inputFirstname"
+        app:errorTextAppearance="@style/ErrorText"
+        app:hintEnabled="false"
+        android:layout_width="350dp"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/txtFirstname"
+            android:layout_width="350dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:drawableStart="@drawable/ic_person_outline_grey_24dp"
+            android:drawableLeft="@drawable/ic_person_outline_grey_24dp"
+            android:drawablePadding="10dp"
+            android:hint="@string/firstname"
+            android:theme="@style/EditText"
+            android:importantForAutofill="no"
+            android:inputType="textPersonName"
+            tools:ignore="UnusedAttribute" />
+    </android.support.design.widget.TextInputLayout>
+
+    <Button
+        android:id="@+id/btnEdit"
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/button_pink"
+        android:drawableEnd="@drawable/ic_send_white_24dp"
+        android:drawableRight="@drawable/ic_send_white_24dp"
+        android:text="@string/edit"
+        android:textColor="@android:color/white" />
+
+    <ProgressBar
+        android:id="@+id/progressBarEdit"
+        android:visibility="gone"
+        android:layout_margin="10dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

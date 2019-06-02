@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
             progressBar = findViewById(R.id.progressBarRegister);
             progressBar.setVisibility(View.VISIBLE);
             auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
-                    .addOnCompleteListener(new FirebaseRegister(this, user));
+                .addOnCompleteListener(new FirebaseRegister(this, user));
         } else
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }

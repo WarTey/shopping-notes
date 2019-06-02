@@ -40,4 +40,6 @@
     <string name="item_checked">Item checked</string>
     <string name="purchased_item">Purchased item</string>
     <string name="search">Search</string>
+    <string name="edit">Edit</string>
+    <string name="reset_my_password_email">Reset my password (Email)</string>
 </resources>

@@ -5,4 +5,6 @@ import com.guillaume.shoppingnotes.model.User;
 public interface FirebaseUsersInterface {
 
     void firebaseUserResponse(User user);
+
+    void firebaseUserUpdated(User user);
 }

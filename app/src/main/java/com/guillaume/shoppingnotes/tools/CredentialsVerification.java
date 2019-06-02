@@ -31,10 +31,12 @@ public class CredentialsVerification {
             showError(inputEmail, "Incorrect email format");
             return false;
         }
+
         if (txtPassword.length() < 6)
             showError(inputPassword, "Your password must be longer than 5 characters");
         else if (!txtPassword.equals(txtPasswordRepeat))
             showError(inputPasswordRepeat, "Your password must be identical");
+
         for (TextInputLayout field : new TextInputLayout[]{inputPasswordRepeat, inputPassword, inputEmail, inputFirstname, inputLastname})
             if (emptyTextView(field))
                 showError(field, "This field cannot be empty");

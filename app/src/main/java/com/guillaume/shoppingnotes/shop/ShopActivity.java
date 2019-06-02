@@ -17,6 +17,7 @@ import android.support.v7.widget.DividerItemDecoration;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,6 +27,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.FirebaseDatabase;
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.database.AppDatabase;
@@ -43,6 +50,10 @@ import com.guillaume.shoppingnotes.database.async.lists.DeleteList;
 import com.guillaume.shoppingnotes.database.async.lists.GetLists;
 import com.guillaume.shoppingnotes.database.async.lists.InsertList;
 import com.guillaume.shoppingnotes.database.async.lists.UpdateList;
+import com.guillaume.shoppingnotes.database.async.users.InsertUser;
+import com.guillaume.shoppingnotes.database.async.users.UpdateUser;
+import com.guillaume.shoppingnotes.firebase.auth.FirebaseRegister;
+import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseRegisterInterface;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseHasForItemsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseItemsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseListsHelper;
@@ -60,13 +71,14 @@ import com.guillaume.shoppingnotes.shop.recycler.items.ItemAdapterInterface;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapter;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapterInterface;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
+import com.guillaume.shoppingnotes.tools.CredentialsVerification;
 import com.muddzdev.styleabletoast.StyleableToast;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
-public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
+public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface {
 
     private boolean online, history, json, itemsMenu;
     private java.util.List<HasForItem> hasForItems;
@@ -161,6 +173,11 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 break;
             case R.id.nav_my_account:
                 toolbar.setTitle(R.string.my_account);
+                Bundle bundle = new Bundle();
+                bundle.putParcelable("user", user);
+                AccountFragment accountFragment = new AccountFragment();
+                accountFragment.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, accountFragment).addToBackStack(null).commit();
                 break;
             case R.id.nav_sign_out:
                 setResult(Activity.RESULT_OK);
@@ -252,6 +269,13 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     public void firebaseHasForItemsDeleted(HasForItem hasForItem) {
         StyleableToast.makeText(this, "Item deleted", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
         new DeleteHasForItems(db, user.getEmail(), hasForItem).execute();
+    }
+
+    @Override
+    public void firebaseUserUpdated(User user) {
+        new UpdateUser(db, user, user.getEmail()).execute();
+        progressBar.setVisibility(View.GONE);
+        StyleableToast.makeText(this, "Account edited", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
     }
 
     @Override
@@ -442,6 +466,16 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 if (hasForItem.getListId().equals(this.listId) && hasForItem.getItemId().equals(item.getId()))
                     new FirebaseHasForItemsHelper(this, firebaseDatabase).deleteHasForItems(this.listId, item.getId(), hasForItem.getChecked());
         else// if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+    }
+
+    @Override
+    public void editFromAccountFragment(User user) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+            progressBar = findViewById(R.id.progressBarEdit);
+            progressBar.setVisibility(View.VISIBLE);
+            new FirebaseUsersHelper(this, firebaseDatabase).updateUser(user);
+        } else
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 

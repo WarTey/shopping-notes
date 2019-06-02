@@ -3,6 +3,7 @@ package com.guillaume.shoppingnotes.firebase.database;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -31,5 +32,13 @@ public class FirebaseUsersHelper {
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) { }
         });
+    }
+
+    public void updateUser(final User user) {
+        databaseReference.child(user.getId()).setValue(user)
+            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                @Override
+                public void onSuccess(Void aVoid) { mListener.firebaseUserUpdated(user); }
+            });
     }
 }

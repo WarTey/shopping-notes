@@ -34,7 +34,7 @@ public class RegisterFragment extends Fragment {
         view.findViewById(R.id.btnSignUp).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                registerClicked();
+            registerClicked();
             }
         });
         return view;
