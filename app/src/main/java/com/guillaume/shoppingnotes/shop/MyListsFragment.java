@@ -9,9 +9,11 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -22,22 +24,25 @@ import com.muddzdev.styleabletoast.StyleableToast;
 public class MyListsFragment extends Fragment {
 
     private OnFragmentInteractionListener mListener;
+    private boolean group;
 
     public MyListsFragment() { }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_my_lists, container, false);
+        if (getArguments() != null)
+            group = getArguments().getBoolean("group", false);
         mListener.listFromMyListsFragment((ProgressBar) view.findViewById(R.id.progressBarMyLists));
         view.findViewById(R.id.floatButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if (getActivity() != null) {
-                if (ConnectivityHelper.isConnectedToNetwork(getActivity()))
-                    showDialog();
-                else
-                    StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
-            }
+                if (getActivity() != null) {
+                    if (ConnectivityHelper.isConnectedToNetwork(getActivity()))
+                        showDialog();
+                    else
+                        StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+                }
             }
         });
         return view;
@@ -63,20 +68,26 @@ public class MyListsFragment extends Fragment {
         builder.setCancelable(true);
         builder.setView(view);
         final AlertDialog alertDialog = builder.create();
-        alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+        if (alertDialog.getWindow() != null)
+            alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         alertDialog.show();
+
+        if (group) {
+            EditText hintText = view.findViewById(R.id.txtListName);
+            hintText.setHint("Name of the group");
+        }
 
         view.findViewById(R.id.btnCreateList).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            if (ConnectivityHelper.isConnectedToNetwork(getActivity())) {
+            if (getActivity() != null && ConnectivityHelper.isConnectedToNetwork(getActivity())) {
                 TextInputLayout inputListName = view.findViewById(R.id.inputListName);
                 String txtListName = inputListName.getEditText().getText().toString().trim();
                 if (txtListName.isEmpty())
                     inputListName.setError("This field cannot be empty");
                 else
                     mListener.newListFromMyListsFragment(inputListName, alertDialog);
-            } else
+            } else if (getActivity() != null)
                 StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
             }
         });

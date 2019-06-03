@@ -49,14 +49,17 @@ import com.guillaume.shoppingnotes.database.async.users.UpdateUser;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseEditEmail;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseEditPassword;
 import com.guillaume.shoppingnotes.firebase.auth.interfaces.FirebaseEditInterface;
+import com.guillaume.shoppingnotes.firebase.database.FirebaseHasForGroupsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseHasForItemsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseItemsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseListsHelper;
 import com.guillaume.shoppingnotes.firebase.database.FirebaseUsersHelper;
+import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseHasForGroupsInterface;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseHasForItemsInterface;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseItemsInterface;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseListsInterface;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseUsersInterface;
+import com.guillaume.shoppingnotes.model.HasForGroup;
 import com.guillaume.shoppingnotes.model.HasForItem;
 import com.guillaume.shoppingnotes.model.Item;
 import com.guillaume.shoppingnotes.model.User;
@@ -73,15 +76,16 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
-public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface, FirebaseEditInterface {
+public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface, FirebaseEditInterface, FirebaseHasForGroupsInterface {
 
-    private boolean online, history, json, itemsMenu;
+    private boolean online, history, json, itemsMenu, group;
+    private java.util.List<HasForGroup> hasForGroups;
     private java.util.List<HasForItem> hasForItems;
+    private java.util.List<List> lists, groupsList;
     private FirebaseDatabase firebaseDatabase;
     private TextInputLayout inputEmail;
     private java.util.List<Item> items;
     private TextView txtEmail, txtName;
-    private java.util.List<List> lists;
     private RecyclerView recyclerView;
     private ProgressBar progressBar;
     private AlertDialog alertDialog;
@@ -112,8 +116,14 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
             new FirebaseUsersHelper(this, firebaseDatabase).getUser();
 
-        if (savedInstanceState == null)
-            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListsFragment()).addToBackStack(null).commit();
+        if (savedInstanceState == null) {
+            group = false;
+            Bundle bundle = new Bundle();
+            bundle.putBoolean("group", group);
+            MyListsFragment myListsFragment = new MyListsFragment();
+            myListsFragment.setArguments(bundle);
+            getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, myListsFragment).addToBackStack(null).commit();
+        }
     }
 
     @Override
@@ -154,13 +164,21 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        MyListsFragment myListsFragment;
+        Bundle bundle;
         listAdapter = null;
         itemAdapter = null;
         itemsMenu = false;
+        group = false;
+
         switch (menuItem.getItemId()) {
             case R.id.nav_my_lists:
                 toolbar.setTitle(R.string.my_lists);
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListsFragment()).addToBackStack(null).commit();
+                bundle = new Bundle();
+                bundle.putBoolean("group", group);
+                myListsFragment = new MyListsFragment();
+                myListsFragment.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, myListsFragment).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_history:
                 toolbar.setTitle(R.string.my_history);
@@ -168,10 +186,16 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 break;
             case R.id.nav_my_groups:
                 toolbar.setTitle(R.string.my_groups);
+                bundle = new Bundle();
+                group = true;
+                bundle.putBoolean("group", group);
+                myListsFragment = new MyListsFragment();
+                myListsFragment.setArguments(bundle);
+                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, myListsFragment).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_account:
                 toolbar.setTitle(R.string.my_account);
-                Bundle bundle = new Bundle();
+                bundle = new Bundle();
                 bundle.putParcelable("user", user);
                 AccountFragment accountFragment = new AccountFragment();
                 accountFragment.setArguments(bundle);
@@ -201,6 +225,23 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     public void firebaseListsResponse(java.util.List<List> lists) {
         this.lists = lists;
         new FirebaseHasForItemsHelper(this, firebaseDatabase).getHasForItems();
+    }
+
+    @Override
+    public void firebaseGroupsListResponse(java.util.List<List> lists) {
+        groupsList = lists;
+        new FirebaseHasForItemsHelper(this, firebaseDatabase).getHasForItems();
+
+
+
+
+
+
+
+
+
+
+
     }
 
     @Override
@@ -300,6 +341,21 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     @Override
+    public void firebaseHasForGroupsResponse(java.util.List<HasForGroup> hasForGroups) {
+        this.hasForGroups = hasForGroups;
+        new FirebaseListsHelper(this, firebaseDatabase).getGroupsList(hasForGroups);
+
+
+
+
+
+
+
+
+
+    }
+
+    @Override
     public void itemCreated(Item item) {
         for (HasForItem hasForItem : hasForItems)
             if (hasForItem.getListId().equals(listId) && hasForItem.getItemId().equals(item.getId()))
@@ -344,12 +400,14 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         this.alertDialog = alertDialog;
 
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
-            for (List list: lists)
-                if (txtListName.equals(list.getName())) {
-                    inputListName.setError("This name is already taken by one of your lists");
-                    return;
-                }
-            new FirebaseListsHelper(this, firebaseDatabase).createList(txtListName);
+            //if (!group) {
+                for (List list : lists)
+                    if (txtListName.equals(list.getName())) {
+                        inputListName.setError("This name is already taken by one of your lists");
+                        return;
+                    }
+                new FirebaseListsHelper(this, firebaseDatabase).createList(txtListName);
+            //}
         } else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
@@ -360,7 +418,20 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         this.progressBar.setVisibility(View.VISIBLE);
         history = false;
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
-            new FirebaseListsHelper(this, firebaseDatabase).getLists(history);
+            if (group)
+                new FirebaseHasForGroupsHelper(this, firebaseDatabase).getHasForGroups();
+            else
+                new FirebaseListsHelper(this, firebaseDatabase).getLists(history);
+
+
+
+
+
+
+
+
+
+
         } else if (!online || !ConnectivityHelper.isConnectedToNetwork(this))
             new GetLists(db, user.getEmail(), this.history).execute(this);
     }
@@ -529,7 +600,10 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     private void initRecyclerViewLists() {
         if (listAdapter == null) {
-            listAdapter = new ListAdapter(lists, this, hasForItems, history);
+            if (group)
+                listAdapter = new ListAdapter(groupsList,this, hasForItems, history, group, hasForGroups);
+            else
+                listAdapter = new ListAdapter(lists,this, hasForItems, history, group, null);
             recyclerView = findViewById(R.id.recyclerView);
             if (recyclerView != null) {
                 recyclerView.setHasFixedSize(true);
@@ -537,8 +611,12 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 recyclerView.setLayoutManager(new LinearLayoutManager(this));
                 recyclerView.setAdapter(listAdapter);
             }
-        } else
-            listAdapter.updateData(lists, hasForItems);
+        } else {
+            if (group)
+                listAdapter.updateData(groupsList, hasForItems, hasForGroups);
+            else
+                listAdapter.updateData(lists, hasForItems, null);
+        }
     }
 
     private void initRecyclerViewItems() {

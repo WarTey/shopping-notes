@@ -1,6 +1,7 @@
 package com.guillaume.shoppingnotes.firebase.database;
 
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -10,6 +11,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseListsInterface;
+import com.guillaume.shoppingnotes.model.HasForGroup;
 import com.guillaume.shoppingnotes.model.List;
 
 import java.util.ArrayList;
@@ -19,8 +21,8 @@ public class FirebaseListsHelper {
     private FirebaseListsInterface mListener;
     private DatabaseReference databaseReference;
 
-    public FirebaseListsHelper(FirebaseListsInterface firebaseGetListsInterface, FirebaseDatabase firebaseDatabase) {
-        mListener = firebaseGetListsInterface;
+    public FirebaseListsHelper(FirebaseListsInterface firebaseListsInterface, FirebaseDatabase firebaseDatabase) {
+        mListener = firebaseListsInterface;
         databaseReference = firebaseDatabase.getReference("lists");
     }
 
@@ -35,6 +37,29 @@ public class FirebaseListsHelper {
                         lists.add(keyNode.getValue(List.class));
                 }
                 mListener.firebaseListsResponse(lists);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) { }
+        });
+    }
+
+    public void getGroupsList(final java.util.List<HasForGroup> hasForGroups) {
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                java.util.List<List> lists = new ArrayList<>();
+                for (DataSnapshot keyNode : dataSnapshot.getChildren()) {
+                    List list = keyNode.getValue(List.class);
+
+
+                    //Log.e("debug", "onDataChange: " + hasForGroups.get(0).getUserId());
+
+                    for (HasForGroup hasForGroup: hasForGroups)
+                        if (list != null && hasForGroup.getListId().equals(list.getId()))
+                            lists.add(keyNode.getValue(List.class));
+                }
+                mListener.firebaseGroupsListResponse(lists);
             }
 
             @Override
