@@ -48,7 +48,7 @@ public class FirebaseUsersHelper {
     }
 
     public void getGroupUsers(final List<HasForGroup> hasForGroups) {
-        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 List<User> users = new ArrayList<>();

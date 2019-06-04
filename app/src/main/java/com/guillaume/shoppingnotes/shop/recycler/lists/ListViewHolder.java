@@ -69,6 +69,9 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
                             case R.id.delete:
                                 mListener.removeList(list);
                                 break;
+                            case R.id.leave_group:
+                                mListener.refuseInvit(list);
+                                break;
                             case R.id.see_members:
                                 mListener.seeMembers(list);
                                 break;
@@ -77,6 +80,9 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
                                 break;
                             case R.id.invitation_accept:
                                 mListener.acceptInvit(list);
+                                break;
+                            case R.id.invit_refuse:
+                                mListener.refuseInvit(list);
                                 break;
                         }
                         return false;

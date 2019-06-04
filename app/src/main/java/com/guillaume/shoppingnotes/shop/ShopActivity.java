@@ -32,27 +32,20 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.database.AppDatabase;
-import com.guillaume.shoppingnotes.database.async.hasforgroups.DeleteHasForGroupsFromList;
-import com.guillaume.shoppingnotes.database.async.hasforgroups.GetHasForGroups;
-import com.guillaume.shoppingnotes.database.async.hasforgroups.InsertHasForGroups;
 import com.guillaume.shoppingnotes.database.async.hasforitems.DeleteHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.DeleteHasForItemsFromList;
 import com.guillaume.shoppingnotes.database.async.hasforitems.GetHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.InsertHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.UpdateHasForItem;
-import com.guillaume.shoppingnotes.database.async.interfaces.HasForGroupsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.HasForItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ListsInterface;
-import com.guillaume.shoppingnotes.database.async.interfaces.UsersGroupInterface;
 import com.guillaume.shoppingnotes.database.async.items.GetItems;
 import com.guillaume.shoppingnotes.database.async.items.InsertItems;
 import com.guillaume.shoppingnotes.database.async.lists.DeleteList;
-import com.guillaume.shoppingnotes.database.async.lists.GetGroupList;
 import com.guillaume.shoppingnotes.database.async.lists.GetLists;
 import com.guillaume.shoppingnotes.database.async.lists.InsertList;
 import com.guillaume.shoppingnotes.database.async.lists.UpdateList;
-import com.guillaume.shoppingnotes.database.async.users.GetUserGroup;
 import com.guillaume.shoppingnotes.database.async.users.UpdateUser;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseEditEmail;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseEditPassword;
@@ -76,6 +69,8 @@ import com.guillaume.shoppingnotes.shop.recycler.items.ItemAdapter;
 import com.guillaume.shoppingnotes.shop.recycler.items.ItemAdapterInterface;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapter;
 import com.guillaume.shoppingnotes.shop.recycler.lists.ListAdapterInterface;
+import com.guillaume.shoppingnotes.shop.recycler.members.MemberAdapter;
+import com.guillaume.shoppingnotes.shop.recycler.members.MemberAdapterInterface;
 import com.guillaume.shoppingnotes.tools.ConnectivityHelper;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
 import com.muddzdev.styleabletoast.StyleableToast;
@@ -84,13 +79,15 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
-public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, HasForGroupsInterface, UsersGroupInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface, FirebaseEditInterface, FirebaseHasForGroupsInterface {
+public class ShopActivity extends AppCompatActivity implements MembersFragment.OnFragmentInteractionListener, MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, MemberAdapterInterface, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface, FirebaseEditInterface, FirebaseHasForGroupsInterface {
 
     private java.util.List<HasForGroup> hasForGroups, allHasForGroups;
     private boolean online, history, json, itemsMenu, group;
     private java.util.List<HasForItem> hasForItems;
     private java.util.List<List> lists, groupsList;
     private FirebaseDatabase firebaseDatabase;
+    private java.util.List<User> groupUsers;
+    private MemberAdapter memberAdapter;
     private TextInputLayout inputEmail;
     private java.util.List<Item> items;
     private TextView txtEmail, txtName;
@@ -163,9 +160,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         txtName = viewNavHeader.findViewById(R.id.txtName);
         txtEmail = viewNavHeader.findViewById(R.id.txtEmail);
         if (user != null) {
-            String firstname = user.getFirstname().length() > 10 ? user.getFirstname().substring(0, 10) + "..." : user.getFirstname();
-            String lastname = user.getLastname().length() > 10 ? user.getLastname().substring(0, 10) + "..." : user.getLastname();
-            txtName.setText(firstname + " " + lastname);
+            String lastname = user.getLastname().length() > 20 ? user.getLastname().substring(0, 20) + "..." : user.getLastname();
+            txtName.setText(user.getFirstname().charAt(0) + ". " + lastname);
             txtEmail.setText(user.getEmail().length() > 30 ? user.getEmail().substring(0, 30) + "..." : user.getEmail());
         }
     }
@@ -176,6 +172,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         Bundle bundle;
         listAdapter = null;
         itemAdapter = null;
+        memberAdapter = null;
         itemsMenu = false;
         group = false;
 
@@ -193,13 +190,16 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HistoryFragment()).addToBackStack(null).commit();
                 break;
             case R.id.nav_my_groups:
-                toolbar.setTitle(R.string.my_groups);
-                bundle = new Bundle();
-                group = true;
-                bundle.putBoolean("group", group);
-                myListsFragment = new MyListsFragment();
-                myListsFragment.setArguments(bundle);
-                getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, myListsFragment).addToBackStack(null).commit();
+                if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+                    toolbar.setTitle(R.string.my_groups);
+                    bundle = new Bundle();
+                    group = true;
+                    bundle.putBoolean("group", group);
+                    myListsFragment = new MyListsFragment();
+                    myListsFragment.setArguments(bundle);
+                    getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, myListsFragment).addToBackStack(null).commit();
+                } else
+                    StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
                 break;
             case R.id.nav_my_account:
                 toolbar.setTitle(R.string.my_account);
@@ -223,9 +223,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseUserResponse(User user) {
         this.user = user;
-        String firstname = user.getFirstname().length() > 10 ? user.getFirstname().substring(0, 10) + "..." : user.getFirstname();
-        String lastname = user.getLastname().length() > 10 ? user.getLastname().substring(0, 10) + "..." : user.getLastname();
-        txtName.setText(firstname + " " + lastname);
+        String lastname = user.getLastname().length() > 20 ? user.getLastname().substring(0, 20) + "..." : user.getLastname();
+        txtName.setText(user.getFirstname().charAt(0) + ". " + lastname);
         txtEmail.setText(user.getEmail().length() > 30 ? user.getEmail().substring(0, 30) + "..." : user.getEmail());
     }
 
@@ -278,16 +277,6 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     @Override
-    public void firebaseHasForGroupsCreated(HasForGroup hasForGroup) {
-        new InsertHasForGroups(user.getEmail(), db, hasForGroup).execute();
-    }
-
-    @Override
-    public void firebaseHasForGroupsMemberCreated(HasForGroup hasForGroup, String userEmail) {
-        new InsertHasForGroups(userEmail, db, hasForGroup).execute();
-    }
-
-    @Override
     public void firebaseListUpdated(List list) {
         StyleableToast.makeText(this, "List " + list.getName() + " updated", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
         new UpdateList(db, list, user.getEmail()).execute();
@@ -296,10 +285,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseListDeleted(List list) {
         StyleableToast.makeText(this, "List " + list.getName() + " deleted", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
-        if (group) {
+        if (group)
             new FirebaseHasForGroupsHelper(this, firebaseDatabase).deleteHasForGroups(list.getId());
-            new DeleteHasForGroupsFromList(user.getEmail(), list, db).execute();
-        }
         new FirebaseHasForItemsHelper(this, firebaseDatabase).deleteHasForItemsFromList(list.getId());
         new DeleteHasForItemsFromList(user.getEmail(), list, db).execute(this);
     }
@@ -390,14 +377,15 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         for (HasForGroup hasForGroup: hasForGroups)
             if (hasForGroup.getUserId().equals(user.getId()))
                 this.hasForGroups.add(hasForGroup);
+            if (memberAdapter != null)
+                initRecyclerViewMembers();
         new FirebaseListsHelper(this, firebaseDatabase).getGroupsList(this.hasForGroups);
     }
 
     @Override
     public void firebaseGroupUsersResponse(java.util.List<User> users) {
-        Log.e("debug", "firebaseGroupUsersResponse: " + users.size());
-        for (User user: users)
-            Log.e("debug", "firebaseGroupUsersResponse: " + user.getEmail());
+        groupUsers = users;
+        initRecyclerViewMembers();
 
 
 
@@ -406,13 +394,9 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
 
 
-    }
 
-    @Override
-    public void userGroupResponse(java.util.List<User> users) {
-        Log.e("debug", "ffirebaseGroupUsersResponse: " + users.size());
-        for (User user: users)
-            Log.e("debug", "ffirebaseGroupUsersResponse: " + user.getEmail());
+
+
     }
 
     @Override
@@ -434,41 +418,6 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             this.lists = lists;
             new GetHasForItems(db).execute(this);
         }
-    }
-
-    @Override
-    public void hasForGroupsResponse(java.util.List<HasForGroup> hasForGroups) {
-        //this.hasForGroups = hasForGroups;
-        this.hasForGroups = new ArrayList<>();
-        allHasForGroups = hasForGroups;
-        for (HasForGroup hasForGroup: hasForGroups)
-            if (hasForGroup.getUserId().equals(user.getId()))
-                this.hasForGroups.add(hasForGroup);
-        new GetGroupList(db, this.hasForGroups).execute(this);
-
-
-
-
-
-
-
-
-    }
-
-    @Override
-    public void groupsListResponse(java.util.List<List> lists) {
-        if (group) {
-            groupsList = lists;
-            new GetHasForItems(db).execute(this);
-        }
-
-
-
-
-
-
-
-
     }
 
     @Override
@@ -530,12 +479,9 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
 
 
-        } else if (!online || !ConnectivityHelper.isConnectedToNetwork(this)) {
-            if (group)
-                new GetHasForGroups(db).execute(this);
-            else
+        } else if (!online || !ConnectivityHelper.isConnectedToNetwork(this))
+            if (!group)
                 new GetLists(db, user.getEmail(), this.history).execute(this);
-        }
     }
 
     @Override
@@ -547,6 +493,20 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             new FirebaseListsHelper(this, firebaseDatabase).getLists(history);
         } else if (!online || !ConnectivityHelper.isConnectedToNetwork(this))
             new GetLists(db, user.getEmail(), this.history).execute(this);
+    }
+
+    @Override
+    public void membersFromMembersFragment(ProgressBar progressBar) {
+        java.util.List<HasForGroup> hasForGroups = new ArrayList<>();
+        for (HasForGroup hasForGroup: this.allHasForGroups)
+            if (hasForGroup.getListId().equals(listId))
+                hasForGroups.add(hasForGroup);
+        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+            this.progressBar = progressBar;
+            progressBar.setVisibility(View.VISIBLE);
+            new FirebaseUsersHelper(this, firebaseDatabase).getGroupUsers(hasForGroups);
+        } else
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -636,7 +596,12 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     @Override
-    public void seeItems(List list) { startListFragment(list); }
+    public void seeItems(List list) {
+        if (group && !ConnectivityHelper.isConnectedToNetwork(this))
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+        else
+            startListFragment(list);
+    }
 
     @Override
     public void noHistoryList(List list) {
@@ -664,25 +629,27 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     @Override
-    public void seeMembers(List list) {
-        java.util.List<HasForGroup> hasForGroups = new ArrayList<>();
-        for (HasForGroup hasForGroup: this.allHasForGroups)
-            if (hasForGroup.getListId().equals(list.getId()))
-                hasForGroups.add(hasForGroup);
+    public void refuseInvit(List list) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this))
-            new FirebaseUsersHelper(this, firebaseDatabase).getGroupUsers(hasForGroups);
-        else if (!online || !ConnectivityHelper.isConnectedToNetwork(this)) /* else */
-            new GetUserGroup(db, hasForGroups).execute(this);
-            //else// if (!online)
-            //StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+            new FirebaseHasForGroupsHelper(this, firebaseDatabase).createHasForGroupsRefuse(list);
+        else// if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+    }
 
+    @Override
+    public void deleteMember(User user, List list) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            new FirebaseHasForGroupsHelper(this, firebaseDatabase).createHasForGroupsDeleteMember(list, user);
+        else// if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+    }
 
-
-
-
-
-
-
+    @Override
+    public void seeMembers(List list) {
+        if (ConnectivityHelper.isConnectedToNetwork(this))
+            startMembersFragment(list);
+        else
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
@@ -743,6 +710,11 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MyListFragment()).addToBackStack(null).commit();
     }
 
+    private void startMembersFragment(List list) {
+        listId = list.getId();
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new MembersFragment()).addToBackStack(null).commit();
+    }
+
     private void initRecyclerViewLists() {
         if (listAdapter == null) {
             if (group)
@@ -764,6 +736,28 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         }
     }
 
+    private void initRecyclerViewMembers() {
+        List list = new List();
+        for (List temp: groupsList)
+            if (temp.getId().equals(listId))
+                list = temp;
+        if (memberAdapter == null) {
+            memberAdapter = new MemberAdapter(allHasForGroups, groupUsers, this, list, user);
+            recyclerView = findViewById(R.id.newListRecyclerView);
+            if (recyclerView != null) {
+                progressBar.setVisibility(View.GONE);
+                toolbar.setTitle(list.getName());
+                recyclerView.setHasFixedSize(true);
+                recyclerView.addItemDecoration(new DividerItemDecoration(this, 0));
+                recyclerView.setLayoutManager(new LinearLayoutManager(this));
+                recyclerView.setAdapter(memberAdapter);
+            }
+        } else {
+            toolbar.setTitle(list.getName());
+            memberAdapter.updateData(groupUsers, allHasForGroups);
+        }
+    }
+
     private void initRecyclerViewItems() {
         java.util.List<Item> listItems = new ArrayList<>();
         for (Item item: items)
@@ -772,7 +766,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                     listItems.add(item);
 
         if (itemAdapter == null) {
-            itemAdapter = new ItemAdapter(listItems, ShopActivity.this, false, hasForItems, listId);
+            itemAdapter = new ItemAdapter(listItems, this, false, hasForItems, listId);
             recyclerView = findViewById(R.id.newListRecyclerView);
             if (recyclerView != null) {
                 setMyListToolbar(listItems);

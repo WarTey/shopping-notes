@@ -19,4 +19,6 @@ public interface ListAdapterInterface {
     void noHistoryList(List list);
 
     void acceptInvit(List list);
+
+    void refuseInvit(List list);
 }

@@ -6,6 +6,4 @@ public interface ListsInterface {
 
     void listsResponse(java.util.List<List> lists);
 
-    void groupsListResponse(java.util.List<List> lists);
-
 }
