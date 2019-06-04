@@ -39,7 +39,5 @@ public class HistoryFragment extends Fragment {
         mListener = null;
     }
 
-    public interface OnFragmentInteractionListener {
-        void listFromHistoryFragment(ProgressBar progressBar);
-    }
+    public interface OnFragmentInteractionListener { void listFromHistoryFragment(ProgressBar progressBar); }
 }

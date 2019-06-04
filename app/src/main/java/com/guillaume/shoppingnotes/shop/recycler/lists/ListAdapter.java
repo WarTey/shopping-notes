@@ -2,7 +2,6 @@ package com.guillaume.shoppingnotes.shop.recycler.lists;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,8 +12,6 @@ import com.guillaume.shoppingnotes.model.HasForItem;
 import com.guillaume.shoppingnotes.model.List;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 public class ListAdapter extends RecyclerView.Adapter<ListViewHolder> {
 
@@ -77,7 +74,7 @@ public class ListAdapter extends RecyclerView.Adapter<ListViewHolder> {
         notifyDataSetChanged();
     }
 
-    public void sortList(java.util.List<List> lists) {
+    private void sortList(java.util.List<List> lists) {
         if (group) {
             this.lists = new ArrayList<>();
             for (HasForGroup hasForGroup : hasForGroups)

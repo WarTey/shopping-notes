@@ -26,7 +26,10 @@ public class HasForItem {
     @NonNull
     private String itemId;
 
-    public HasForItem() { }
+    public HasForItem() {
+        listId = "";
+        itemId = "";
+    }
 
     @Ignore
     public HasForItem(boolean checked, @NonNull String listId, @NonNull String itemId) {

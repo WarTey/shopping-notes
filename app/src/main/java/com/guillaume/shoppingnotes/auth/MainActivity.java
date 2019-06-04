@@ -59,17 +59,17 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
         progressBar = findViewById(R.id.progressBarLogin);
         progressBar.setVisibility(View.VISIBLE);
 
-        if (ConnectivityHelper.isConnectedToNetwork(this))
+        if (ConnectivityHelper.isConnectedToNetwork(this) && inputEmail.getEditText() != null && inputPassword.getEditText() != null)
             auth.signInWithEmailAndPassword(inputEmail.getEditText().getText().toString().trim(), inputPassword.getEditText().getText().toString().trim())
                     .addOnCompleteListener(new FirebaseLogin(this));
-        else
+        else if (inputEmail.getEditText() != null)
             new GetUser(db, inputEmail.getEditText().getText().toString().trim()).execute(this);
     }
 
     @Override
     public void firebaseLogged() {
-        progressBar.setVisibility(View.GONE);
-        connectionSuccessful(user, true);
+        if (inputEmail.getEditText() != null)
+            new GetUser(db, inputEmail.getEditText().getText().toString().trim()).execute(this);
     }
 
     @Override
@@ -81,21 +81,33 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
     @Override
     public void userResponse(User user) {
         progressBar.setVisibility(View.GONE);
-        if (user != null && user.getPassword().equals(inputPassword.getEditText().getText().toString().trim())) {
-            connectionSuccessful(user, false);
+        if (user != null && inputPassword.getEditText() != null && user.getPassword().equals(inputPassword.getEditText().getText().toString().trim())) {
+            if (ConnectivityHelper.isConnectedToNetwork(this))
+                connectionSuccessful(user, true, true);
+            else
+                connectionSuccessful(user, false, true);
             return;
         }
-        CredentialsVerification.loginFailed(inputEmail, inputPassword);
+
+        if (ConnectivityHelper.isConnectedToNetwork(this))
+            connectionSuccessful(user, true, false);
+        else
+            CredentialsVerification.loginFailed(inputEmail, inputPassword);
     }
 
-    private void connectionSuccessful(User user, boolean online) {
+    private void connectionSuccessful(User user, boolean online, boolean local) {
         Intent intent = new Intent(this, ShopActivity.class);
         intent.putExtra("user", user);
         intent.putExtra("online", online);
+        intent.putExtra("local", local);
         startActivityForResult(intent, 1);
-        if (online)
-            StyleableToast.makeText(this, "Connection successful", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
-        else
+
+        if (online) {
+            if (local)
+                StyleableToast.makeText(this, "Connection successful", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
+            else
+                StyleableToast.makeText(this, "Connection successful (Read only)", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
+        } else
             StyleableToast.makeText(this, "Connection successful (Offline)", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
@@ -108,15 +120,17 @@ public class MainActivity extends AppCompatActivity implements LoginFragment.OnF
             progressBar = findViewById(R.id.progressBarRegister);
             progressBar.setVisibility(View.VISIBLE);
             auth.createUserWithEmailAndPassword(user.getEmail(), user.getPassword())
-                .addOnCompleteListener(new FirebaseRegister(this, user));
+                    .addOnCompleteListener(new FirebaseRegister(this, user));
         } else
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
 
     @Override
     public void firebaseRegistered() {
-        user.setId(FirebaseAuth.getInstance().getCurrentUser().getUid());
-        new InsertUser(db, user).execute(this);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            user.setId(FirebaseAuth.getInstance().getCurrentUser().getUid());
+            new InsertUser(db, user).execute(this);
+        }
     }
 
     @Override

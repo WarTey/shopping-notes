@@ -14,11 +14,8 @@ public interface ListDao {
     @Query("SELECT * FROM lists WHERE user_id = :userId AND is_done = :isDone")
     java.util.List<List> getListsByUserId(String userId, boolean isDone);
 
-    @Query("SELECT * FROM lists WHERE id = :listId")
-    List getGroupListById(String listId);
-
     @Insert
-    void insertList(List list);
+    void insertList(List... list);
 
     @Update
     void updateList(List... lists);

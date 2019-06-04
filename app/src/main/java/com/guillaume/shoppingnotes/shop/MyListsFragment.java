@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,12 +36,12 @@ public class MyListsFragment extends Fragment {
         view.findViewById(R.id.floatButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (getActivity() != null) {
-                    if (ConnectivityHelper.isConnectedToNetwork(getActivity()))
-                        showDialog();
-                    else
-                        StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
-                }
+            if (getActivity() != null) {
+                if (ConnectivityHelper.isConnectedToNetwork(getActivity()))
+                    showDialog();
+                else
+                    StyleableToast.makeText(getActivity(), "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+            }
             }
         });
         return view;
@@ -82,7 +81,9 @@ public class MyListsFragment extends Fragment {
             public void onClick(View v) {
             if (getActivity() != null && ConnectivityHelper.isConnectedToNetwork(getActivity())) {
                 TextInputLayout inputListName = view.findViewById(R.id.inputListName);
-                String txtListName = inputListName.getEditText().getText().toString().trim();
+                String txtListName = "";
+                if (inputListName.getEditText() != null)
+                    txtListName = inputListName.getEditText().getText().toString().trim();
                 if (txtListName.isEmpty())
                     inputListName.setError("This field cannot be empty");
                 else

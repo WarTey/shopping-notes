@@ -24,7 +24,7 @@ public class FirebaseRegister implements OnCompleteListener<AuthResult>, Firebas
 
     @Override
     public void onComplete(@NonNull Task<AuthResult> task) {
-        if (task.isSuccessful()) {
+        if (task.isSuccessful() && FirebaseAuth.getInstance().getCurrentUser() != null) {
             user.setId(FirebaseAuth.getInstance().getCurrentUser().getUid());
             new FirebaseAuthHelper(this, FirebaseDatabase.getInstance()).createUser(user);
         } else mListener.firebaseNonRegistered();

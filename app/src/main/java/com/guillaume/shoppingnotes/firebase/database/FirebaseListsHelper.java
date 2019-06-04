@@ -1,7 +1,6 @@
 package com.guillaume.shoppingnotes.firebase.database;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -33,7 +32,7 @@ public class FirebaseListsHelper {
                 java.util.List<List> lists = new ArrayList<>();
                 for (DataSnapshot keyNode : dataSnapshot.getChildren()) {
                     List list = keyNode.getValue(List.class);
-                    if (list != null && list.getUserId() != null && list.getUserId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) && list.getDone() == history)
+                    if (list != null && list.getUserId() != null && FirebaseAuth.getInstance().getCurrentUser() != null && list.getUserId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()) && list.getDone() == history)
                         lists.add(keyNode.getValue(List.class));
                 }
                 mListener.firebaseListsResponse(lists);
@@ -64,24 +63,26 @@ public class FirebaseListsHelper {
     }
 
     public void createList(String listName, boolean group) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String foreignKey = userId;
-        String groupId = "";
-        if (group) {
-            groupId = "(group)";
-            foreignKey = null;
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            String foreignKey = userId;
+            String groupId = "";
+            if (group) {
+                groupId = "(group)";
+                foreignKey = null;
+            }
+            final List list = new List(listName + userId + groupId, listName, false, foreignKey);
+            databaseReference.child(listName + userId + groupId).setValue(list)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) { mListener.firebaseListCreated(list); }
+                    });
         }
-        final List list = new List(listName + userId + groupId, listName, false, foreignKey);
-        databaseReference.child(listName + userId + groupId).setValue(list)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) { mListener.firebaseListCreated(list); }
-                });
     }
 
     public void updateList(final List list) {
         databaseReference.child(list.getId()).setValue(list)
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseListUpdated(list); }
             });
@@ -89,7 +90,7 @@ public class FirebaseListsHelper {
 
     public void deleteList(final List list) {
         databaseReference.child(list.getId()).setValue(null)
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseListDeleted(list); }
             });

@@ -1,7 +1,6 @@
 package com.guillaume.shoppingnotes.shop;
 
 import android.content.Context;
-import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
@@ -9,13 +8,10 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
-import android.widget.Toast;
 
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.model.User;
 import com.guillaume.shoppingnotes.tools.CredentialsVerification;
-import com.muddzdev.styleabletoast.StyleableToast;
 
 public class AccountFragment extends Fragment {
 
@@ -39,16 +35,17 @@ public class AccountFragment extends Fragment {
         user = getArguments().getParcelable("user");
 
         initializeInput(view);
-        inputLastname.getEditText().setText(user.getLastname());
-        inputFirstname.getEditText().setText(user.getFirstname());
-        inputEmail.getEditText().setText(user.getEmail());
-        inputPassword.getEditText().setText(user.getPassword());
-        inputPasswordRepeat.getEditText().setText(user.getPassword());
+        if (inputLastname.getEditText() != null && inputFirstname.getEditText() != null && inputEmail.getEditText() != null && inputPassword.getEditText() != null && inputPasswordRepeat.getEditText() != null) {
+            inputLastname.getEditText().setText(user.getLastname());
+            inputFirstname.getEditText().setText(user.getFirstname());
+            inputEmail.getEditText().setText(user.getEmail());
+            inputPassword.getEditText().setText(user.getPassword());
+            inputPasswordRepeat.getEditText().setText(user.getPassword());
+        }
 
         view.findViewById(R.id.btnEdit).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                editClicked();
+            public void onClick(View v) { editClicked();
             }
         });
         return view;
@@ -90,7 +87,5 @@ public class AccountFragment extends Fragment {
             mListener.editFromAccountFragment(new User(user.getId(), txtLastname, txtFirstname, txtEmail, txtPassword), inputEmail);
     }
 
-    public interface OnFragmentInteractionListener {
-        void editFromAccountFragment(User user, TextInputLayout inputEmail);
-    }
+    public interface OnFragmentInteractionListener { void editFromAccountFragment(User user, TextInputLayout inputEmail); }
 }

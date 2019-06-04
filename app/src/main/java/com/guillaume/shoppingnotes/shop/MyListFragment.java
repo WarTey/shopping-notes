@@ -38,7 +38,5 @@ public class MyListFragment extends Fragment {
         mListener = null;
     }
 
-    public interface OnFragmentInteractionListener {
-        void listFromMyListFragment(ProgressBar progressBar);
-    }
+    public interface OnFragmentInteractionListener { void listFromMyListFragment(ProgressBar progressBar); }
 }

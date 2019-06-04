@@ -1,7 +1,6 @@
 package com.guillaume.shoppingnotes.firebase.database;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
@@ -42,7 +41,7 @@ public class FirebaseHasForItemsHelper {
 
     public void createHasForItems(String listId, final String itemId) {
         databaseReference.child(listId + itemId).setValue(new HasForItem(false, listId, itemId))
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseHasForItemsCreated(itemId); }
             });
@@ -50,7 +49,7 @@ public class FirebaseHasForItemsHelper {
 
     public void checkHasForItems(final String listId, final String itemId, final boolean checked) {
         databaseReference.child(listId + itemId).setValue(new HasForItem(checked, listId, itemId))
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseHasForItemsChecked(new HasForItem(checked, listId, itemId)); }
             });
@@ -58,7 +57,7 @@ public class FirebaseHasForItemsHelper {
 
     public void deleteHasForItems(final String listId, final String itemId, final boolean checked) {
         databaseReference.child(listId + itemId).setValue(null)
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseHasForItemsDeleted(new HasForItem(checked, listId, itemId)); }
             });

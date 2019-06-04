@@ -13,7 +13,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
-import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -23,7 +22,6 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.model.Item;
-import com.muddzdev.styleabletoast.StyleableToast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -87,6 +85,13 @@ public class NewListFragment extends Fragment implements SearchView.OnQueryTextL
 
     @Override
     public boolean onQueryTextSubmit(String s) {
+        items.clear();
+        progressBar.setVisibility(View.VISIBLE);
+        if (s == null || s.trim().isEmpty()) {
+            showItems("Bread");
+            return false;
+        }
+        showItems(s);
         return false;
     }
 
@@ -130,7 +135,5 @@ public class NewListFragment extends Fragment implements SearchView.OnQueryTextL
         requestQueue.add(request);
     }
 
-    public interface OnFragmentInteractionListener {
-        void showItemsFromNewListFragment(View view, List<Item> items);
-    }
+    public interface OnFragmentInteractionListener { void showItemsFromNewListFragment(View view, List<Item> items); }
 }

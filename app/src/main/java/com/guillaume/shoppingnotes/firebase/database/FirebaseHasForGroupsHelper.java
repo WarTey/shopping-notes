@@ -1,9 +1,7 @@
 package com.guillaume.shoppingnotes.firebase.database;
 
 import android.support.annotation.NonNull;
-import android.util.Log;
 
-import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -12,7 +10,6 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.guillaume.shoppingnotes.firebase.database.interfaces.FirebaseHasForGroupsInterface;
 import com.guillaume.shoppingnotes.model.HasForGroup;
-import com.guillaume.shoppingnotes.model.HasForItem;
 import com.guillaume.shoppingnotes.model.User;
 
 import java.util.ArrayList;
@@ -44,9 +41,11 @@ public class FirebaseHasForGroupsHelper {
     }
 
     public void createHasForGroups(com.guillaume.shoppingnotes.model.List list) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        final HasForGroup hasForGroup = new HasForGroup(list.getId(), userId, true, true);
-        databaseReference.child(list.getName() + userId).setValue(hasForGroup);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            final HasForGroup hasForGroup = new HasForGroup(list.getId(), userId, true, true);
+            databaseReference.child(list.getName() + userId).setValue(hasForGroup);
+        }
     }
 
     public void createHasForGroupsMember(final User user, com.guillaume.shoppingnotes.model.List list) {
@@ -55,14 +54,18 @@ public class FirebaseHasForGroupsHelper {
     }
 
     public void createHasForGroupsAccept(com.guillaume.shoppingnotes.model.List list) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        final HasForGroup hasForGroup = new HasForGroup(list.getId(), userId, true, false);
-        databaseReference.child(list.getName() + userId).setValue(hasForGroup);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            final HasForGroup hasForGroup = new HasForGroup(list.getId(), userId, true, false);
+            databaseReference.child(list.getName() + userId).setValue(hasForGroup);
+        }
     }
 
     public void createHasForGroupsRefuse(com.guillaume.shoppingnotes.model.List list) {
-        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        databaseReference.child(list.getName() + userId).setValue(null);
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+            databaseReference.child(list.getName() + userId).setValue(null);
+        }
     }
 
     public void createHasForGroupsDeleteMember(com.guillaume.shoppingnotes.model.List list, User user) {

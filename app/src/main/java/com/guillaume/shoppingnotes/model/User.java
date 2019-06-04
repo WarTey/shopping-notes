@@ -7,8 +7,6 @@ import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
 
-import com.google.firebase.database.annotations.NotNull;
-
 @Entity(tableName = "users")
 public class User implements Parcelable {
 
@@ -24,7 +22,9 @@ public class User implements Parcelable {
 
     private String password;
 
-    public User() { }
+    public User() {
+        id = "";
+    }
 
     @Ignore
     public User(@NonNull String id, String lastname, String firstname, String email, String password) {

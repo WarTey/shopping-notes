@@ -3,7 +3,6 @@ package com.guillaume.shoppingnotes.firebase.database;
 import android.support.annotation.NonNull;
 
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -42,7 +41,7 @@ public class FirebaseItemsHelper {
 
     public void createItem(final Item item) {
         databaseReference.child(item.getId()).setValue(item)
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseItemCreated(item); }
             });

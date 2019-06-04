@@ -18,7 +18,9 @@ public class Item {
 
     private String image;
 
-    public Item() { }
+    public Item() {
+        id = "";
+    }
 
     @Ignore
     public Item(@NonNull String id, String name, String image, Double price) {

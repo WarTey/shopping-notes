@@ -2,16 +2,13 @@ package com.guillaume.shoppingnotes.shop.recycler.items;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
 
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.model.HasForItem;
 import com.guillaume.shoppingnotes.model.Item;
-import com.muddzdev.styleabletoast.StyleableToast;
 
 import java.util.List;
 

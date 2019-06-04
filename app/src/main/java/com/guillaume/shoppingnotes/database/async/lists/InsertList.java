@@ -1,7 +1,6 @@
 package com.guillaume.shoppingnotes.database.async.lists;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.guillaume.shoppingnotes.database.AppDatabase;
 import com.guillaume.shoppingnotes.model.List;

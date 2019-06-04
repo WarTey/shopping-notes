@@ -33,8 +33,7 @@ public class RegisterFragment extends Fragment {
         initializeInput(view);
         view.findViewById(R.id.btnSignUp).setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-            registerClicked();
+            public void onClick(View v) { registerClicked();
             }
         });
         return view;
@@ -56,10 +55,16 @@ public class RegisterFragment extends Fragment {
     }
 
     private void registerClicked() {
-        String txtLastname = inputLastname.getEditText().getText().toString().trim();
-        String txtFirstname = inputFirstname.getEditText().getText().toString().trim();
-        String txtEmail = inputEmail.getEditText().getText().toString().trim();
-        String txtPassword = inputPassword.getEditText().getText().toString().trim();
+        String txtLastname = "";
+        String txtFirstname = "";
+        String txtEmail = "";
+        String txtPassword = "";
+        if (inputLastname.getEditText() != null && inputFirstname.getEditText() != null && inputEmail.getEditText() != null && inputPassword.getEditText() != null) {
+            txtLastname = inputLastname.getEditText().getText().toString().trim();
+            txtFirstname = inputFirstname.getEditText().getText().toString().trim();
+            txtEmail = inputEmail.getEditText().getText().toString().trim();
+            txtPassword = inputPassword.getEditText().getText().toString().trim();
+        }
 
         for (TextInputLayout field : new TextInputLayout[]{inputLastname, inputFirstname, inputEmail, inputPassword, inputPasswordRepeat}) {
             field.setError(null);

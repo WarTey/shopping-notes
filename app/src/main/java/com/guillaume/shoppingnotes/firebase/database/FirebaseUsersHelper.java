@@ -3,9 +3,7 @@ package com.guillaume.shoppingnotes.firebase.database;
 import android.support.annotation.NonNull;
 import android.support.design.widget.TextInputLayout;
 
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -30,18 +28,20 @@ public class FirebaseUsersHelper {
     }
 
     public void getUser() {
-        databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) { mListener.firebaseUserResponse(dataSnapshot.getValue(User.class)); }
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) { mListener.firebaseUserResponse(dataSnapshot.getValue(User.class)); }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) { }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) { }
+            });
+        }
     }
 
     public void updateUser(final User user) {
         databaseReference.child(user.getId()).setValue(user)
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
+                .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseUserUpdated(user); }
             });

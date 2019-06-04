@@ -5,18 +5,16 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
-import com.guillaume.shoppingnotes.database.dao.HasForGroupDao;
 import com.guillaume.shoppingnotes.database.dao.HasForItemDao;
 import com.guillaume.shoppingnotes.database.dao.ItemDao;
 import com.guillaume.shoppingnotes.database.dao.ListDao;
 import com.guillaume.shoppingnotes.database.dao.UserDao;
 import com.guillaume.shoppingnotes.model.HasForItem;
-import com.guillaume.shoppingnotes.model.HasForGroup;
 import com.guillaume.shoppingnotes.model.Item;
 import com.guillaume.shoppingnotes.model.List;
 import com.guillaume.shoppingnotes.model.User;
 
-@Database(entities = {User.class, List.class, Item.class, HasForGroup.class, HasForItem.class}, exportSchema = false, version = 1)
+@Database(entities = {User.class, List.class, Item.class, HasForItem.class}, exportSchema = false, version = 1)
 public abstract class AppDatabase extends RoomDatabase {
 
     private static final String DATABASE_NAME = "shopping_notes";
@@ -37,6 +35,4 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract ItemDao itemDao();
 
     public abstract HasForItemDao hasForItemDao();
-
-    public abstract HasForGroupDao hasForGroupDao();
 }

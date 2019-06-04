@@ -2,7 +2,6 @@ package com.guillaume.shoppingnotes.shop.recycler.members;
 
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +33,7 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberViewHolder> {
                 admin = true;
     }
 
+    @NonNull
     public MemberViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         LayoutInflater inflater = LayoutInflater.from(viewGroup.getContext());
         View view = inflater.inflate(R.layout.list_recycler, viewGroup, false);
@@ -58,7 +58,7 @@ public class MemberAdapter extends RecyclerView.Adapter<MemberViewHolder> {
         notifyDataSetChanged();
     }
 
-    public void sortList(List<User> users) {
+    private void sortList(List<User> users) {
         this.users = new ArrayList<>();
         for (HasForGroup hasForGroup : hasForGroups)
             if (hasForGroup.isOwner() && hasForGroup.getListId().equals(list.getId()))

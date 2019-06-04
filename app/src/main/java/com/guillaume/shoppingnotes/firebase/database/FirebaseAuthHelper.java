@@ -18,8 +18,9 @@ public class FirebaseAuthHelper {
     }
 
     public void createUser(User user) {
-        databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(user)
-            .addOnSuccessListener(new OnSuccessListener<Void>() {
+        if (FirebaseAuth.getInstance().getCurrentUser() != null)
+            databaseReference.child(FirebaseAuth.getInstance().getCurrentUser().getUid()).setValue(user)
+                    .addOnSuccessListener(new OnSuccessListener<Void>() {
                 @Override
                 public void onSuccess(Void aVoid) { mListener.firebaseUserCreated(); }
             });

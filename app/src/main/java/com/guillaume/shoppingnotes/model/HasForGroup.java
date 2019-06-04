@@ -28,7 +28,10 @@ public class HasForGroup {
 
     private boolean owner;
 
-    public HasForGroup() { }
+    public HasForGroup() {
+        listId = "";
+        userId = "";
+    }
 
     @Ignore
     public HasForGroup(@NonNull String listId, @NonNull String userId, boolean status, boolean owner) {

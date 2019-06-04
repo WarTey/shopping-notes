@@ -6,12 +6,17 @@ import java.util.regex.Pattern;
 
 public class CredentialsVerification {
 
-    private static final String EMAIL_REGEX = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)\\])";
+    private static final String EMAIL_REGEX = "(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*|\"(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21\\x23-\\x5b\\x5d-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])*\")@(?:(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?|\\[(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?|[a-z0-9-]*[a-z0-9]:(?:[\\x01-\\x08\\x0b\\x0c\\x0e-\\x1f\\x21-\\x5a\\x53-\\x7f]|\\\\[\\x01-\\x09\\x0b\\x0c\\x0e-\\x7f])+)])";
     private static Pattern pattern = Pattern.compile(EMAIL_REGEX);
 
     private static boolean checkEmail(String email) { return pattern.matcher(email).matches(); }
 
-    private static boolean emptyTextView(TextInputLayout str) { return str.getEditText().getText().toString().trim().isEmpty(); }
+    private static boolean emptyTextView(TextInputLayout str) {
+        boolean empty = true;
+        if (str.getEditText() != null)
+            empty = str.getEditText().getText().toString().trim().isEmpty();
+        return empty;
+    }
 
     private static void showError(TextInputLayout field, String message) {
         field.setError(message);
@@ -19,11 +24,18 @@ public class CredentialsVerification {
     }
 
     public static boolean registerVerification(TextInputLayout inputLastname, TextInputLayout inputFirstname, TextInputLayout inputEmail, TextInputLayout inputPassword, TextInputLayout inputPasswordRepeat) {
-        String txtLastname = inputLastname.getEditText().getText().toString().trim();
-        String txtFirstname = inputFirstname.getEditText().getText().toString().trim();
-        String txtEmail = inputEmail.getEditText().getText().toString().trim();
-        String txtPassword = inputPassword.getEditText().getText().toString().trim();
-        String txtPasswordRepeat = inputPasswordRepeat.getEditText().getText().toString().trim();
+        String txtLastname = "";
+        String txtFirstname = "";
+        String txtEmail = "";
+        String txtPassword = "";
+        String txtPasswordRepeat = "";
+        if (inputLastname.getEditText() != null && inputFirstname.getEditText() != null && inputEmail.getEditText() != null && inputPassword.getEditText() != null && inputPasswordRepeat.getEditText() != null) {
+            txtLastname = inputLastname.getEditText().getText().toString().trim();
+            txtFirstname = inputFirstname.getEditText().getText().toString().trim();
+            txtEmail = inputEmail.getEditText().getText().toString().trim();
+            txtPassword = inputPassword.getEditText().getText().toString().trim();
+            txtPasswordRepeat = inputPasswordRepeat.getEditText().getText().toString().trim();
+        }
 
         if (!txtLastname.isEmpty() && !txtFirstname.isEmpty() && !txtEmail.isEmpty() && !txtPassword.isEmpty() && txtPassword.equals(txtPasswordRepeat) && txtPassword.length() > 5) {
             if (checkEmail(txtEmail) && txtEmail.substring(txtEmail.lastIndexOf('.') + 1).length() > 1)
@@ -44,7 +56,7 @@ public class CredentialsVerification {
     }
 
     public static void registerFailed(TextInputLayout inputEmail) {
-        if (!emptyTextView(inputEmail) && checkEmail(inputEmail.getEditText().getText().toString().trim()))
+        if (!emptyTextView(inputEmail) && inputEmail.getEditText() != null && checkEmail(inputEmail.getEditText().getText().toString().trim()))
             showError(inputEmail, "This email already exist");
     }
 

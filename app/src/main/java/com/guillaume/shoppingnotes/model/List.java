@@ -27,7 +27,9 @@ public class List {
     @Nullable
     private String userId;
 
-    public List() { }
+    public List() {
+        id = "";
+    }
 
     @Ignore
     public List(@NonNull String id, String name, boolean done, @Nullable String userId) {
