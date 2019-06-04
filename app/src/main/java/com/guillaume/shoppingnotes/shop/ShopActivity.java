@@ -423,7 +423,8 @@ public class ShopActivity extends AppCompatActivity implements MembersFragment.O
         this.alertDialog = alertDialog;
 
         if ((online && ConnectivityHelper.isConnectedToNetwork(this) && local) || group) {
-            for (List list : lists)
+            java.util.List<List> tempArr = group ? new ArrayList<>(groupsList) : new ArrayList<>(lists);
+            for (List list : tempArr)
                 if (txtListName.equals(list.getName())) {
                     if (group)
                         inputListName.setError("This name is already taken by one of your groups");
@@ -815,7 +816,7 @@ public class ShopActivity extends AppCompatActivity implements MembersFragment.O
             if (txtListName.isEmpty())
                 inputListName.setError("This field cannot be empty");
             else
-                new FirebaseUsersHelper(this, firebaseDatabase).GetUniqueUserForGroup(hasForGroups, list, txtListName, inputListName);
+                new FirebaseUsersHelper(this, firebaseDatabase).GetUniqueUserForGroup(allHasForGroups, list, txtListName, inputListName);
         } else
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
