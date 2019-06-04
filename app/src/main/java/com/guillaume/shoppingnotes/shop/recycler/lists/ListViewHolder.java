@@ -64,10 +64,19 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
                                 mListener.noHistoryList(list);
                                 break;
                             case R.id.rename:
-                                mListener.initAlert(list);
+                                mListener.initAlert(list, false);
                                 break;
                             case R.id.delete:
                                 mListener.removeList(list);
+                                break;
+                            case R.id.see_members:
+                                mListener.seeMembers(list);
+                                break;
+                            case R.id.add_member:
+                                mListener.initAlert(list, true);
+                                break;
+                            case R.id.invitation_accept:
+                                mListener.acceptInvit(list);
                                 break;
                         }
                         return false;
@@ -83,10 +92,22 @@ public class ListViewHolder extends RecyclerView.ViewHolder {
         this.list = list;
         this.hasForGroup = hasForGroup;
         this.group = group;
-        image.setImageResource(R.drawable.checkbox_unchecked);
-        if (nbChecked == nbItems && nbItems != 0)
-            image.setImageResource(R.drawable.checkbox_checked);
         name.setText(list.getName().length() > 15 ? list.getName().substring(0, 15) + "..." : list.getName());
         checked.setText(nbChecked + "/" + nbItems);
+
+        if (group) {
+            if (hasForGroup.isOwner())
+                image.setImageResource(R.drawable.admin_group);
+            else if (hasForGroup.isStatus())
+                image.setImageResource(R.drawable.user_group);
+            else {
+                image.setImageResource(R.drawable.invitation);
+                checked.setText("");
+            }
+        } else {
+            image.setImageResource(R.drawable.checkbox_unchecked);
+            if (nbChecked == nbItems && nbItems != 0)
+                image.setImageResource(R.drawable.checkbox_checked);
+        }
     }
 }

@@ -63,4 +63,20 @@ public class FirebaseHasForItemsHelper {
                 public void onSuccess(Void aVoid) { mListener.firebaseHasForItemsDeleted(new HasForItem(checked, listId, itemId)); }
             });
     }
+
+    public void deleteHasForItemsFromList(final String listId) {
+        databaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                for (DataSnapshot keyNode : dataSnapshot.getChildren()) {
+                    HasForItem hasForItem = keyNode.getValue(HasForItem.class);
+                    if (keyNode.getKey() != null && hasForItem != null && hasForItem.getListId().equals(listId))
+                        databaseReference.child(keyNode.getKey()).setValue(null);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) { }
+        });
+    }
 }

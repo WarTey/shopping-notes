@@ -22,6 +22,7 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -31,20 +32,27 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
 import com.guillaume.shoppingnotes.R;
 import com.guillaume.shoppingnotes.database.AppDatabase;
+import com.guillaume.shoppingnotes.database.async.hasforgroups.DeleteHasForGroupsFromList;
+import com.guillaume.shoppingnotes.database.async.hasforgroups.GetHasForGroups;
+import com.guillaume.shoppingnotes.database.async.hasforgroups.InsertHasForGroups;
 import com.guillaume.shoppingnotes.database.async.hasforitems.DeleteHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.DeleteHasForItemsFromList;
 import com.guillaume.shoppingnotes.database.async.hasforitems.GetHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.InsertHasForItems;
 import com.guillaume.shoppingnotes.database.async.hasforitems.UpdateHasForItem;
+import com.guillaume.shoppingnotes.database.async.interfaces.HasForGroupsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.HasForItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ItemsInterface;
 import com.guillaume.shoppingnotes.database.async.interfaces.ListsInterface;
+import com.guillaume.shoppingnotes.database.async.interfaces.UsersGroupInterface;
 import com.guillaume.shoppingnotes.database.async.items.GetItems;
 import com.guillaume.shoppingnotes.database.async.items.InsertItems;
 import com.guillaume.shoppingnotes.database.async.lists.DeleteList;
+import com.guillaume.shoppingnotes.database.async.lists.GetGroupList;
 import com.guillaume.shoppingnotes.database.async.lists.GetLists;
 import com.guillaume.shoppingnotes.database.async.lists.InsertList;
 import com.guillaume.shoppingnotes.database.async.lists.UpdateList;
+import com.guillaume.shoppingnotes.database.async.users.GetUserGroup;
 import com.guillaume.shoppingnotes.database.async.users.UpdateUser;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseEditEmail;
 import com.guillaume.shoppingnotes.firebase.auth.FirebaseEditPassword;
@@ -76,10 +84,10 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 
-public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface, FirebaseEditInterface, FirebaseHasForGroupsInterface {
+public class ShopActivity extends AppCompatActivity implements MyListFragment.OnFragmentInteractionListener, MyListsFragment.OnFragmentInteractionListener, HistoryFragment.OnFragmentInteractionListener, NewListFragment.OnFragmentInteractionListener, AccountFragment.OnFragmentInteractionListener, NavigationView.OnNavigationItemSelectedListener, ListAdapterInterface, ItemAdapterInterface, ListsInterface, HasForItemsInterface, HasForGroupsInterface, UsersGroupInterface, ItemsInterface, FirebaseUsersInterface, FirebaseListsInterface, FirebaseHasForItemsInterface, FirebaseItemsInterface, FirebaseEditInterface, FirebaseHasForGroupsInterface {
 
+    private java.util.List<HasForGroup> hasForGroups, allHasForGroups;
     private boolean online, history, json, itemsMenu, group;
-    private java.util.List<HasForGroup> hasForGroups;
     private java.util.List<HasForItem> hasForItems;
     private java.util.List<List> lists, groupsList;
     private FirebaseDatabase firebaseDatabase;
@@ -223,14 +231,18 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void firebaseListsResponse(java.util.List<List> lists) {
-        this.lists = lists;
-        new FirebaseHasForItemsHelper(this, firebaseDatabase).getHasForItems();
+        if (!group) {
+            this.lists = lists;
+            new FirebaseHasForItemsHelper(this, firebaseDatabase).getHasForItems();
+        }
     }
 
     @Override
     public void firebaseGroupsListResponse(java.util.List<List> lists) {
-        groupsList = lists;
-        new FirebaseHasForItemsHelper(this, firebaseDatabase).getHasForItems();
+        if (group) {
+            groupsList = lists;
+            new FirebaseHasForItemsHelper(this, firebaseDatabase).getHasForItems();
+        }
 
 
 
@@ -259,7 +271,20 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         new InsertList(db, list, user.getEmail()).execute();
         StyleableToast.makeText(this, "List " + list.getName() + " created", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
         alertDialog.cancel();
-        startNewListFragment(list.getId());
+        if (group)
+            new FirebaseHasForGroupsHelper(this, firebaseDatabase).createHasForGroups(list);
+        else
+            startNewListFragment(list.getId());
+    }
+
+    @Override
+    public void firebaseHasForGroupsCreated(HasForGroup hasForGroup) {
+        new InsertHasForGroups(user.getEmail(), db, hasForGroup).execute();
+    }
+
+    @Override
+    public void firebaseHasForGroupsMemberCreated(HasForGroup hasForGroup, String userEmail) {
+        new InsertHasForGroups(userEmail, db, hasForGroup).execute();
     }
 
     @Override
@@ -271,6 +296,11 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     @Override
     public void firebaseListDeleted(List list) {
         StyleableToast.makeText(this, "List " + list.getName() + " deleted", Toast.LENGTH_LONG, R.style.CustomToastCheck).show();
+        if (group) {
+            new FirebaseHasForGroupsHelper(this, firebaseDatabase).deleteHasForGroups(list.getId());
+            new DeleteHasForGroupsFromList(user.getEmail(), list, db).execute();
+        }
+        new FirebaseHasForItemsHelper(this, firebaseDatabase).deleteHasForItemsFromList(list.getId());
         new DeleteHasForItemsFromList(user.getEmail(), list, db).execute(this);
     }
 
@@ -318,6 +348,19 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     @Override
+    public void firebaseUniqueGroupUserResponse(int index, TextInputLayout inputListName, List list, User user) {
+        if (index > 0) {
+            inputListName.setError("This user is already in this group");
+            return;
+        } else if (index == -1) {
+            inputListName.setError("This user not exist");
+            return;
+        }
+        new FirebaseHasForGroupsHelper(this, firebaseDatabase).createHasForGroupsMember(user, list);
+        alertDialog.cancel();
+    }
+
+    @Override
     public void firebaseEmailEdited(User user) {
         if (auth.getCurrentUser() != null)
             auth.getCurrentUser().updatePassword(user.getPassword()).addOnCompleteListener(new FirebaseEditPassword(this, user));
@@ -342,8 +385,19 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void firebaseHasForGroupsResponse(java.util.List<HasForGroup> hasForGroups) {
-        this.hasForGroups = hasForGroups;
-        new FirebaseListsHelper(this, firebaseDatabase).getGroupsList(hasForGroups);
+        this.hasForGroups = new ArrayList<>();
+        allHasForGroups = hasForGroups;
+        for (HasForGroup hasForGroup: hasForGroups)
+            if (hasForGroup.getUserId().equals(user.getId()))
+                this.hasForGroups.add(hasForGroup);
+        new FirebaseListsHelper(this, firebaseDatabase).getGroupsList(this.hasForGroups);
+    }
+
+    @Override
+    public void firebaseGroupUsersResponse(java.util.List<User> users) {
+        Log.e("debug", "firebaseGroupUsersResponse: " + users.size());
+        for (User user: users)
+            Log.e("debug", "firebaseGroupUsersResponse: " + user.getEmail());
 
 
 
@@ -352,7 +406,13 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
 
 
+    }
 
+    @Override
+    public void userGroupResponse(java.util.List<User> users) {
+        Log.e("debug", "ffirebaseGroupUsersResponse: " + users.size());
+        for (User user: users)
+            Log.e("debug", "ffirebaseGroupUsersResponse: " + user.getEmail());
     }
 
     @Override
@@ -370,8 +430,45 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
     @Override
     public void listsResponse(java.util.List<List> lists) {
-        this.lists = lists;
-        new GetHasForItems(db).execute(this);
+        if (!group) {
+            this.lists = lists;
+            new GetHasForItems(db).execute(this);
+        }
+    }
+
+    @Override
+    public void hasForGroupsResponse(java.util.List<HasForGroup> hasForGroups) {
+        //this.hasForGroups = hasForGroups;
+        this.hasForGroups = new ArrayList<>();
+        allHasForGroups = hasForGroups;
+        for (HasForGroup hasForGroup: hasForGroups)
+            if (hasForGroup.getUserId().equals(user.getId()))
+                this.hasForGroups.add(hasForGroup);
+        new GetGroupList(db, this.hasForGroups).execute(this);
+
+
+
+
+
+
+
+
+    }
+
+    @Override
+    public void groupsListResponse(java.util.List<List> lists) {
+        if (group) {
+            groupsList = lists;
+            new GetHasForItems(db).execute(this);
+        }
+
+
+
+
+
+
+
+
     }
 
     @Override
@@ -400,14 +497,15 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         this.alertDialog = alertDialog;
 
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
-            //if (!group) {
-                for (List list : lists)
-                    if (txtListName.equals(list.getName())) {
+            for (List list : lists)
+                if (txtListName.equals(list.getName())) {
+                    if (group)
+                        inputListName.setError("This name is already taken by one of your groups");
+                    else
                         inputListName.setError("This name is already taken by one of your lists");
-                        return;
-                    }
-                new FirebaseListsHelper(this, firebaseDatabase).createList(txtListName);
-            //}
+                    return;
+                }
+            new FirebaseListsHelper(this, firebaseDatabase).createList(txtListName, group);
         } else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }
@@ -432,8 +530,12 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
 
 
 
-        } else if (!online || !ConnectivityHelper.isConnectedToNetwork(this))
-            new GetLists(db, user.getEmail(), this.history).execute(this);
+        } else if (!online || !ConnectivityHelper.isConnectedToNetwork(this)) {
+            if (group)
+                new GetHasForGroups(db).execute(this);
+            else
+                new GetLists(db, user.getEmail(), this.history).execute(this);
+        }
     }
 
     @Override
@@ -478,7 +580,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
     }
 
     @Override
-    public void initAlert(final List list) {
+    public void initAlert(final List list, boolean addMember) {
         if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             LayoutInflater layoutInflater = getLayoutInflater();
@@ -486,9 +588,15 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             final TextInputLayout inputListName = view.findViewById(R.id.inputListName);
             Button btnCreate = view.findViewById(R.id.btnCreateList);
 
-            if (inputListName.getEditText() != null)
-                inputListName.getEditText().setText(list.getName());
-            btnCreate.setText(R.string.rename);
+            if (addMember) {
+                EditText txtListName = view.findViewById(R.id.txtListName);
+                txtListName.setHint("Email of the user");
+                btnCreate.setText(R.string.add_member);
+            } else {
+                if (inputListName.getEditText() != null)
+                    inputListName.getEditText().setText(list.getName());
+                btnCreate.setText(R.string.rename);
+            }
             builder.setCancelable(true);
             builder.setView(view);
             alertDialog = builder.create();
@@ -496,7 +604,13 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 alertDialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
             alertDialog.show();
 
-            view.findViewById(R.id.btnCreateList).setOnClickListener(new View.OnClickListener() {
+            if (addMember)
+                view.findViewById(R.id.btnCreateList).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) { addMembers(list, inputListName); }
+                });
+            else
+                view.findViewById(R.id.btnCreateList).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) { renameList(list, inputListName); }
             });
@@ -539,6 +653,36 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             new FirebaseItemsHelper(this, firebaseDatabase).createItem(item);
         else// if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+    }
+
+    @Override
+    public void acceptInvit(List list) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            new FirebaseHasForGroupsHelper(this, firebaseDatabase).createHasForGroupsAccept(list);
+        else// if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+    }
+
+    @Override
+    public void seeMembers(List list) {
+        java.util.List<HasForGroup> hasForGroups = new ArrayList<>();
+        for (HasForGroup hasForGroup: this.allHasForGroups)
+            if (hasForGroup.getListId().equals(list.getId()))
+                hasForGroups.add(hasForGroup);
+        if (online && ConnectivityHelper.isConnectedToNetwork(this))
+            new FirebaseUsersHelper(this, firebaseDatabase).getGroupUsers(hasForGroups);
+        else if (!online || !ConnectivityHelper.isConnectedToNetwork(this)) /* else */
+            new GetUserGroup(db, hasForGroups).execute(this);
+            //else// if (!online)
+            //StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+
+
+
+
+
+
+
+
     }
 
     @Override
@@ -585,7 +729,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         //itemAdapter = null;
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new NewListFragment()).addToBackStack(null).commit();
 
-        for (List list: lists)
+        java.util.List<List> tempArr = group ? new ArrayList<>(groupsList) : new ArrayList<>(lists);
+        for (List list: tempArr)
             if (list.getId().equals(listId))
                 toolbar.setTitle(list.getName());
     }
@@ -615,7 +760,7 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             if (group)
                 listAdapter.updateData(groupsList, hasForItems, hasForGroups);
             else
-                listAdapter.updateData(lists, hasForItems, null);
+                listAdapter.updateData(lists, hasForItems, hasForGroups);
         }
     }
 
@@ -647,7 +792,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
         for (Item item: items)
             price += item.getPrice();
 
-        for (List list: lists) {
+        java.util.List<List> tempArr = group ? new ArrayList<>(groupsList) : new ArrayList<>(lists);
+        for (List list: tempArr) {
             if (list.getId().equals(listId)) {
                 if (list.getName().length() > 15)
                     toolbar.setTitle(list.getName().substring(0, 15) + "... - " + new BigDecimal(price).setScale(2, RoundingMode.HALF_UP).doubleValue() + "€");
@@ -665,7 +811,8 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
             if (txtListName.isEmpty())
                 inputListName.setError("This field cannot be empty");
             else {
-                for (List userList : lists)
+                java.util.List<List> tempArr = group ? new ArrayList<List>(groupsList) : new ArrayList<List>(lists);
+                for (List userList : tempArr)
                     if (txtListName.equals(userList.getName())) {
                         inputListName.setError("This name is already taken by one of your lists");
                         return;
@@ -674,6 +821,19 @@ public class ShopActivity extends AppCompatActivity implements MyListFragment.On
                 new FirebaseListsHelper(this, firebaseDatabase).updateList(list);
                 alertDialog.cancel();
             }
+        } else //if (!online)
+            StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
+    }
+
+    private void addMembers(List list, TextInputLayout inputListName) {
+        if (online && ConnectivityHelper.isConnectedToNetwork(this)) {
+            String txtListName = "";
+            if (inputListName.getEditText() != null)
+                txtListName = inputListName.getEditText().getText().toString().trim();
+            if (txtListName.isEmpty())
+                inputListName.setError("This field cannot be empty");
+            else
+                new FirebaseUsersHelper(this, firebaseDatabase).GetUniqueUserForGroup(hasForGroups, list, txtListName, inputListName);
         } else //if (!online)
             StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
     }

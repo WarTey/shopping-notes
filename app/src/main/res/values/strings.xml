@@ -42,4 +42,10 @@
     <string name="search">Search</string>
     <string name="edit">Edit</string>
     <string name="reset_my_password_email">Reset my password (Email)</string>
+    <string name="accept">Accept</string>
+    <string name="refuse">Refuse</string>
+    <string name="see_my_group">See my group</string>
+    <string name="see_members">See members</string>
+    <string name="leave_the_group">Leave the group</string>
+    <string name="add_member">Add member</string>
 </resources>

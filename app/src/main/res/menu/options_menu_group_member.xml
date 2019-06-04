@@ -2,7 +2,19 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/member"
-        android:title="Member" />
+        android:id="@+id/see_items"
+        android:title="@string/see_my_group" />
+
+    <item
+        android:id="@+id/add_items"
+        android:title="@string/add_items" />
+
+    <item
+        android:id="@+id/see_members"
+        android:title="@string/see_members" />
+
+    <item
+        android:id="@+id/leave_group"
+        android:title="@string/leave_the_group" />
 
 </menu>

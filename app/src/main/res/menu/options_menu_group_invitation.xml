@@ -2,7 +2,11 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/invitation"
-        android:title="Invitation" />
+        android:id="@+id/invitation_accept"
+        android:title="@string/accept" />
+
+    <item
+        android:id="@+id/invit_refuse"
+        android:title="@string/refuse" />
 
 </menu>
