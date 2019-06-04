@@ -202,12 +202,12 @@ public class ShopActivity extends AppCompatActivity implements MembersFragment.O
                     StyleableToast.makeText(this, "No internet connection", Toast.LENGTH_LONG, R.style.CustomToastConnection).show();
                 break;
             case R.id.nav_my_account:
-                toolbar.setTitle(R.string.my_account);
                 bundle = new Bundle();
                 bundle.putParcelable("user", user);
                 AccountFragment accountFragment = new AccountFragment();
                 accountFragment.setArguments(bundle);
                 getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, accountFragment).addToBackStack(null).commit();
+                toolbar.setTitle(R.string.my_account);
                 break;
             case R.id.nav_sign_out:
                 setResult(Activity.RESULT_OK);
